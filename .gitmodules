@@ -1,0 +1,6 @@
+[submodule "resource-packs"]
+	path = resource-packs
+	url = https://github.com/bedrocktweaks/resource-packs
+[submodule "behaviour-packs"]
+	path = behaviour-packs
+	url = https://github.com/bedrocktweaks/behaviour-packs
