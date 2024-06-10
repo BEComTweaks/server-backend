@@ -53,6 +53,7 @@ let currentdir = process.cwd();
 function cdir(type) {
     if(type=='resource')return currentdir+'/resource-packs';
     else if(type=='behaviour')return currentdir+'/behaviour-packs';
+    else if(type='crafting')return currentdir+'/crafting-tweaks'
     else return currentdir
 }
 
@@ -242,6 +243,19 @@ httpsApp.post('/exportBehaviourPack', (req, res) => {
         fs.unlinkSync(zipPath);
     });
 });
+httpsApp.post('/exportCraftingTweak', (req, res) => {
+    const packName=req.headers.packname
+    const selectedPacks = req.body;
+    const zipPath = exportPack(selectedPacks,packName,'crafting');
+
+    res.download(zipPath, `${path.basename(zipPath)}`, err => {
+        if (err) {
+            console.error('Error downloading the file:', err);
+            res.status(500).send('Error downloading the file.');
+        }
+        fs.unlinkSync(zipPath);
+    });
+});
 
 httpApp.listen(httpPort, () => {
     console.log(`Http server is running at http://localhost:${httpPort}`);
@@ -264,6 +278,19 @@ httpApp.post('/exportBehaviourPack', (req, res) => {
     const packName=req.headers.packname
     const selectedPacks = req.body;
     const zipPath = exportPack(selectedPacks,packName,'behaviour');
+
+    res.download(zipPath, `${path.basename(zipPath)}`, err => {
+        if (err) {
+            console.error('Error downloading the file:', err);
+            res.status(500).send('Error downloading the file.');
+        }
+        fs.unlinkSync(zipPath);
+    });
+});
+httpApp.post('/exportCraftingTweak', (req, res) => {
+    const packName=req.headers.packname
+    const selectedPacks = req.body;
+    const zipPath = exportPack(selectedPacks,packName,'crafting');
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {

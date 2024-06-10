@@ -4,3 +4,6 @@
 [submodule "behaviour-packs"]
 	path = behaviour-packs
 	url = https://github.com/bedrocktweaks/behaviour-packs
+[submodule "crafting-tweaks"]
+	path = crafting-tweaks
+	url = https://github.com/BedrockTweaks/crafting-tweaks.git
