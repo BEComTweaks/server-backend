@@ -29,31 +29,75 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const https = require('https');
-const privateKey = fs.readFileSync('private.key', 'utf8');
-const certificate = fs.readFileSync('certificate.crt', 'utf8');
-const ca = fs.readFileSync('ca_bundle.crt', 'utf8');
-const credentials = { key: privateKey, cert: certificate, ca: ca};
-
-const httpsApp = express();
-const httpApp=express();
 const httpsPort = 443;
-const httpPort=80;
+const httpPort = 80;
+try {
+    const privateKey = fs.readFileSync('private.key', 'utf8');
+    const certificate = fs.readFileSync('certificate.crt', 'utf8');
+    const ca = fs.readFileSync('ca_bundle.crt', 'utf8');
+    const credentials = { key: privateKey, cert: certificate, ca: ca };
+    const httpsApp = express();
+    const httpsServer = https.createServer(credentials, httpsApp);
+    httpsServer.listen(httpsPort, () => {
+        console.log(`Https server is running at https://localhost:${httpsPort}`);
+    });
+    httpsApp.use(cors());
+    httpsApp.use(bodyParser.json());
 
-const httpsServer = https.createServer(credentials, httpsApp);
-httpsServer.listen(httpsPort, () => {
-    console.log(`Https server is running at https://localhost:${httpsPort}`);
-});
+    httpsApp.post('/exportResourcePack', (req, res) => {
+        const packName = req.headers.packname
+        const selectedPacks = req.body;
+        const zipPath = exportPack(selectedPacks, packName, 'resource');
+    
+        res.download(zipPath, `${path.basename(zipPath)}`, err => {
+            if (err) {
+                console.error('Error downloading the file:', err);
+                res.status(500).send('Error downloading the file.');
+            }
+            fs.unlinkSync(zipPath);
+        });
+    });
+    httpsApp.post('/exportBehaviourPack', (req, res) => {
+        const packName = req.headers.packname
+        const selectedPacks = req.body;
+        const zipPath = exportPack(selectedPacks, packName, 'behaviour');
+    
+        res.download(zipPath, `${path.basename(zipPath)}`, err => {
+            if (err) {
+                console.error('Error downloading the file:', err);
+                res.status(500).send('Error downloading the file.');
+            }
+            fs.unlinkSync(zipPath);
+        });
+    });
+    httpsApp.post('/exportCraftingTweak', (req, res) => {
+        const packName = req.headers.packname
+        const selectedPacks = req.body;
+        const zipPath = exportPack(selectedPacks, packName, 'crafting');
+    
+        res.download(zipPath, `${path.basename(zipPath)}`, err => {
+            if (err) {
+                console.error('Error downloading the file:', err);
+                res.status(500).send('Error downloading the file.');
+            }
+            fs.unlinkSync(zipPath);
+        });
+    });
+}
+catch (e) {
+    console.log(`error with https\n ${e}`);
+}
+
+const httpApp = express();
 
 httpApp.use(cors());
 httpApp.use(bodyParser.json());
-httpsApp.use(cors());
-httpsApp.use(bodyParser.json());
 
 let currentdir = process.cwd();
 function cdir(type) {
-    if(type=='resource')return currentdir+'/resource-packs';
-    else if(type=='behaviour')return currentdir+'/behaviour-packs';
-    else if(type='crafting')return currentdir+'/crafting-tweaks'
+    if (type == 'resource') return currentdir + '/resource-packs';
+    else if (type == 'behaviour') return currentdir + '/behaviour-packs';
+    else if (type == 'crafting') return currentdir + '/crafting-tweaks'
     else return currentdir
 }
 
@@ -80,9 +124,9 @@ function lsdir(directory) {
 }
 
 let mf = loadJson(`${cdir('resource')}/jsons/others/manifest.json`);
-function manifestGenerator(selectedPacks,packName,type) {
-    mf=loadJson(`${cdir(type)}/jsons/others/manifest.json`);
-    mf.header.name=packName
+function manifestGenerator(selectedPacks, packName, type) {
+    mf = loadJson(`${cdir(type)}/jsons/others/manifest.json`);
+    mf.header.name = packName
     let description = "";
     for (let i in selectedPacks) {
         if (i !== "raw") {
@@ -100,10 +144,10 @@ function manifestGenerator(selectedPacks,packName,type) {
         fs.mkdirSync(packDir);
     }
     dumpJson(`${packDir}/manifest.json`, mf);
-    fs.copyFileSync(`${cdir(type)}/pack_icons/template_82x.png`,`${packDir}/pack_icon.png`);
+    fs.copyFileSync(`${cdir(type)}/pack_icons/template_82x.png`, `${packDir}/pack_icon.png`);
 }
 
-function listOfFromDirectories(selectedPacks,type) {
+function listOfFromDirectories(selectedPacks, type) {
     selPacks = selectedPacks;
     let addedPacks = [];
     let fromDir = [];
@@ -172,10 +216,10 @@ function mainCopyFile(fromDir) {
     });
 }
 
-function exportPack(selectedPacks,packName,type) {
+function exportPack(selectedPacks, packName, type) {
     console.log(type)
-    manifestGenerator(selectedPacks,packName,type);
-    const fromDir = listOfFromDirectories(selectedPacks,type);
+    manifestGenerator(selectedPacks, packName, type);
+    const fromDir = listOfFromDirectories(selectedPacks, type);
     console.log(`Exporting at ${cdir()}${path.sep}${mf.header.name}...`);
     fromDir.forEach(from => mainCopyFile(from));
     const targetPackDir = `${cdir()}/${mf.header.name}`;
@@ -217,54 +261,14 @@ function dumpJson(path, dictionary) {
     fs.writeFileSync(path, data, "utf-8");
 }
 
-httpsApp.post('/exportResourcePack', (req, res) => {
-    const packName=req.headers.packname
-    const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'resource');
-
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
-        }
-        fs.unlinkSync(zipPath);
-    });
-});
-httpsApp.post('/exportBehaviourPack', (req, res) => {
-    const packName=req.headers.packname
-    const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'behaviour');
-
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
-        }
-        fs.unlinkSync(zipPath);
-    });
-});
-httpsApp.post('/exportCraftingTweak', (req, res) => {
-    const packName=req.headers.packname
-    const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'crafting');
-
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
-        }
-        fs.unlinkSync(zipPath);
-    });
-});
-
 httpApp.listen(httpPort, () => {
     console.log(`Http server is running at http://localhost:${httpPort}`);
 });
 
 httpApp.post('/exportResourcePack', (req, res) => {
-    const packName=req.headers.packname
+    const packName = req.headers.packname
     const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'resource');
+    const zipPath = exportPack(selectedPacks, packName, 'resource');
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
@@ -275,9 +279,9 @@ httpApp.post('/exportResourcePack', (req, res) => {
     });
 });
 httpApp.post('/exportBehaviourPack', (req, res) => {
-    const packName=req.headers.packname
+    const packName = req.headers.packname
     const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'behaviour');
+    const zipPath = exportPack(selectedPacks, packName, 'behaviour');
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
@@ -288,9 +292,9 @@ httpApp.post('/exportBehaviourPack', (req, res) => {
     });
 });
 httpApp.post('/exportCraftingTweak', (req, res) => {
-    const packName=req.headers.packname
+    const packName = req.headers.packname
     const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks,packName,'crafting');
+    const zipPath = exportPack(selectedPacks, packName, 'crafting');
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
