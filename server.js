@@ -236,7 +236,7 @@ function exportPack(selectedPacks, packName, type) {
     console.log(`${mf.header.name}.mcpack 2/2`);
     fs.renameSync(`${path.join(cdir(), mf.header.name)}.zip`, `${path.join(cdir(), mf.header.name)}.mcpack`);
     fs.rmSync(targetPackDir, { recursive: true });
-    console.log(`Finished exporting the pack!'`);
+    console.log(`Finished exporting the pack!`);
     console.log("It is now available at", `${path.sep}${mf.header.name}.mcpack`);
     return `${path.join(cdir(), mf.header.name)}.mcpack`;
 }
@@ -246,12 +246,7 @@ function loadJson(path) {
     try {
         return JSON.parse(fs.readFileSync(path, 'utf8'));
     } catch (error) {
-        console.log(`\n${path} got a JSON Decode Error`);
-        if (error.message === "") {
-            console.log(`${path} is empty!`);
-        } else {
-            console.log(error.stack, "yellow");
-        }
+        console.log(error.stack, "yellow");
         process.exit(1);
     }
 }
