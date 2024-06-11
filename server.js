@@ -141,7 +141,7 @@ function manifestGenerator(selectedPacks, packName, type) {
     mf.modules[0].uuid = uuidv4();
     const packDir = `${cdir()}/${mf.header.name}`;
     if (!fs.existsSync(packDir)) {
-        fs.mkdirSync(packDir);
+        fs.mkdirSync(packDir, { recursive: true });
     }
     dumpJson(`${packDir}/manifest.json`, mf);
     fs.copyFileSync(`${cdir(type)}/pack_icons/template_82x.png`, `${packDir}/pack_icon.png`);
