@@ -45,43 +45,13 @@ try {
     httpsApp.use(bodyParser.json());
 
     httpsApp.post('/exportResourcePack', (req, res) => {
-        const packName = req.headers.packname
-        const selectedPacks = req.body;
-        const zipPath = exportPack(selectedPacks, packName, 'resource');
-    
-        res.download(zipPath, `${path.basename(zipPath)}`, err => {
-            if (err) {
-                console.error('Error downloading the file:', err);
-                res.status(500).send('Error downloading the file.');
-            }
-            fs.unlinkSync(zipPath);
-        });
+        makePackRequest(req, res, 'resource')
     });
     httpsApp.post('/exportBehaviourPack', (req, res) => {
-        const packName = req.headers.packname
-        const selectedPacks = req.body;
-        const zipPath = exportPack(selectedPacks, packName, 'behaviour');
-    
-        res.download(zipPath, `${path.basename(zipPath)}`, err => {
-            if (err) {
-                console.error('Error downloading the file:', err);
-                res.status(500).send('Error downloading the file.');
-            }
-            fs.unlinkSync(zipPath);
-        });
+        makePackRequest(req, res, 'behaviour')
     });
     httpsApp.post('/exportCraftingTweak', (req, res) => {
-        const packName = req.headers.packname
-        const selectedPacks = req.body;
-        const zipPath = exportPack(selectedPacks, packName, 'crafting');
-    
-        res.download(zipPath, `${path.basename(zipPath)}`, err => {
-            if (err) {
-                console.error('Error downloading the file:', err);
-                res.status(500).send('Error downloading the file.');
-            }
-            fs.unlinkSync(zipPath);
-        });
+        makePackRequest(req, res, 'crafting')
     });
 }
 catch (e) {
@@ -98,7 +68,7 @@ function cdir(type) {
     if (type == 'resource') return currentdir + '/resource-packs';
     else if (type == 'behaviour') return currentdir + '/behaviour-packs';
     else if (type == 'crafting') return currentdir + '/crafting-tweaks'
-    else return currentdir+'/makePacks'
+    else return currentdir + '/makePacks'
 }
 
 
@@ -275,41 +245,28 @@ httpApp.listen(httpPort, () => {
 });
 
 httpApp.post('/exportResourcePack', (req, res) => {
-    const packName = req.headers.packname
-    const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks, packName, 'resource');
+    makePackRequest(req, res, 'resource')
 
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
-        }
-        fs.unlinkSync(zipPath);
-    });
 });
 httpApp.post('/exportBehaviourPack', (req, res) => {
-    const packName = req.headers.packname
-    const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks, packName, 'behaviour');
+    makePackRequest(req, res, 'behaviour')
 
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
-        }
-        fs.unlinkSync(zipPath);
-    });
 });
 httpApp.post('/exportCraftingTweak', (req, res) => {
+    makePackRequest(req, res, 'crafting')
+});
+
+function makePackRequest(req, res, type) {
     const packName = req.headers.packname
     const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks, packName, 'crafting');
+    const zipPath = exportPack(selectedPacks, packName, type);
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
             console.error('Error downloading the file:', err);
             res.status(500).send('Error downloading the file.');
         }
-        fs.unlinkSync(zipPath);
+        try { fs.unlinkSync(zipPath); }
+        catch (e) { console.log(e) }
     });
-});
+}
