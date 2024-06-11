@@ -98,7 +98,7 @@ function cdir(type) {
     if (type == 'resource') return currentdir + '/resource-packs';
     else if (type == 'behaviour') return currentdir + '/behaviour-packs';
     else if (type == 'crafting') return currentdir + '/crafting-tweaks'
-    else return currentdir
+    else return currentdir+'/makePacks'
 }
 
 
