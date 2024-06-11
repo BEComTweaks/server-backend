@@ -201,8 +201,8 @@ function mainCopyFile(fromDir) {
                 if (item.endsWith('.json')) {
                     const toJson = loadJson(targetPath);
                     const fromJson = loadJson(path.join(fromDir, item));
-                    Object.assign(toJson, fromJson);
-                    dumpJson(targetPath, toJson);
+                    const mergedJson = deepMerge(toJson, fromJson);
+                    dumpJson(targetPath, mergedJson);
                 } else if (item.endsWith('.lang')) {
                     const fromLang = fs.readFileSync(path.join(fromDir, item), 'utf-8');
                     fs.appendFileSync(targetPath, `\n${fromLang}`);
@@ -214,6 +214,20 @@ function mainCopyFile(fromDir) {
             }
         }
     });
+}
+
+function deepMerge(target, source) {
+    for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            if (!target[key]) {
+                target[key] = {};
+            }
+            deepMerge(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
+    }
+    return target;
 }
 
 function exportPack(selectedPacks, packName, type) {
