@@ -264,7 +264,8 @@ function makePackRequest(req, res, type) {
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
             console.error('Error downloading the file:', err);
-            res.status(500).send('Error downloading the file.');
+            try { res.status(500).send('Error downloading the file.'); }
+            catch (e) { console.log(e) }
         }
         try { fs.unlinkSync(zipPath); }
         catch (e) { console.log(e) }
