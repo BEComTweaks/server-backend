@@ -177,7 +177,7 @@ function mainCopyFile(fromDir) {
                     const fromLang = fs.readFileSync(path.join(fromDir, item), 'utf-8');
                     fs.appendFileSync(targetPath, `\n${fromLang}`);
                 } else {
-                    throw new Error(`${path.join(fromDir, item)} cannot be copied to ${targetPath} as it cannot be merged`);
+                    console.log(`${path.join(fromDir, item)} cannot be copied to ${targetPath} as it cannot be merged`);
                 }
             } else {
                 fs.copyFileSync(path.join(fromDir, item), targetPath);
