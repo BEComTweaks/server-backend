@@ -1,9 +1,9 @@
 [submodule "resource-packs"]
 	path = resource-packs
-	url = https://github.com/bedrocktweaks/resource-packs
+	url = https://github.com/becomtweaks/resource-packs.git
 [submodule "behaviour-packs"]
 	path = behaviour-packs
-	url = https://github.com/bedrocktweaks/behaviour-packs
+	url = https://github.com/becomtweaks/behaviour-packs.git
 [submodule "crafting-tweaks"]
 	path = crafting-tweaks
-	url = https://github.com/BedrockTweaks/crafting-tweaks.git
+	url = https://github.com/becomtweaks/crafting-tweaks.git
