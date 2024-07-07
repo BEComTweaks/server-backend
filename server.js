@@ -270,4 +270,13 @@ function makePackRequest(req, res, type) {
         try { fs.unlinkSync(zipPath); }
         catch (e) { console.log(e) }
     });
+    let downloadTotals=JSON.parse('{}')
+    if(fs.existsSync('downloadTotals.json'))downloadTotals = loadJson('downloadTotals.json')
+    for (var i in selectedPacks.raw) {
+        if (!downloadTotals.hasOwnProperty(selectedPacks.raw[i])) {
+            downloadTotals[selectedPacks.raw[i]]=0
+        }
+        downloadTotals[selectedPacks.raw[i]] += 1
+    }
+    dumpJson('downloadTotals.json', downloadTotals)
 }

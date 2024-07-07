@@ -3,3 +3,4 @@ certificate.crt
 private.key
 node_modules
 makePacks
+downloadTotals.json
