@@ -114,7 +114,7 @@ function manifestGenerator(selectedPacks, packName, type) {
         fs.mkdirSync(packDir, { recursive: true });
     }
     dumpJson(`${packDir}/manifest.json`, mf);
-    fs.copyFileSync(`${cdir(type)}/pack_icons/template_82x.png`, `${packDir}/pack_icon.png`);
+    fs.copyFileSync(`${cdir(type)}/pack_icons/pack_icon.png`, `${packDir}/pack_icon.png`);
 }
 
 function listOfFromDirectories(selectedPacks, type) {
