@@ -2,7 +2,7 @@ name: Update Submodules
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Runs daily at 6 am UTC
+    - cron: '0 6 * * *'  # Runs every day at 6am UTC
   workflow_dispatch:
 
 jobs:
@@ -34,5 +34,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Automated update of submodules"
+          git commit -m "Updated submodules"
           git push origin main
