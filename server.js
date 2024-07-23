@@ -271,12 +271,16 @@ function makePackRequest(req, res, type) {
         catch (e) { console.log(e) }
     });
     let downloadTotals=JSON.parse('{}')
-    if(fs.existsSync('downloadTotals.json'))downloadTotals = loadJson('downloadTotals.json')
+    if(fs.existsSync(`downloadTotals${type}.json`))downloadTotals = loadJson(`downloadTotals${type}.json`)
     for (var i in selectedPacks.raw) {
         if (!downloadTotals.hasOwnProperty(selectedPacks.raw[i])) {
             downloadTotals[selectedPacks.raw[i]]=0
         }
         downloadTotals[selectedPacks.raw[i]] += 1
     }
-    dumpJson('downloadTotals.json', downloadTotals)
+    if (!downloadTotals.hasOwnProperty('total')) {
+        downloadTotals['total']=0
+    }
+    downloadTotals['total'] += 1
+    dumpJson(`downloadTotals${type}.json`, downloadTotals)
 }
