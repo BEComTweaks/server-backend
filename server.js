@@ -124,7 +124,8 @@ function listOfFromDirectories(selectedPacks, type) {
 
     for (let category in selPacks) {
         if (category !== "raw") {
-            const ctopic = loadJson(`${cdir(type)}/jsons/packs/${category.replace(' ', '_').replace(' ', '_').toLowerCase()}.json`);
+			const nameToJson = loadJson(`${cdir(type)}/jsons/others/name_to_json.json`);
+            const ctopic = loadJson(`${cdir(type)}/jsons/packs/${nameToJson[category]}`);
             selPacks[category].packs.forEach((pack, index) => {
                 let compatible = false;
                 if (addedPacks.includes(ctopic.packs[selPacks[category].index[index]].pack_id)) {
