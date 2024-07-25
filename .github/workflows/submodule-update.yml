@@ -1,8 +1,6 @@
 name: Update Submodules
 
 on:
-  schedule:
-    - cron: '0 */8 * * *'  # Runs every 68hours
   workflow_dispatch:
 
 jobs:
