@@ -124,7 +124,8 @@ function listOfFromDirectories(selectedPacks, type) {
 
     for (let category in selPacks) {
         if (category !== "raw") {
-            const ctopic = loadJson(`${cdir(type)}/jsons/packs/${category.replace(' ', '_').replace(' ', '_').toLowerCase()}.json`);
+			const nameToJson = loadJson(`${cdir(type)}/jsons/others/name_to_json.json`);
+            const ctopic = loadJson(`${cdir(type)}/jsons/packs/${nameToJson[category]}`);
             selPacks[category].packs.forEach((pack, index) => {
                 let compatible = false;
                 if (addedPacks.includes(ctopic.packs[selPacks[category].index[index]].pack_id)) {
@@ -176,8 +177,6 @@ function mainCopyFile(fromDir) {
                 } else if (item.endsWith('.lang')) {
                     const fromLang = fs.readFileSync(path.join(fromDir, item), 'utf-8');
                     fs.appendFileSync(targetPath, `\n${fromLang}`);
-                } else {
-                    console.log(`${path.join(fromDir, item)} cannot be copied to ${targetPath} as it cannot be merged`);
                 }
             } else {
                 fs.copyFileSync(path.join(fromDir, item), targetPath);
