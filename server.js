@@ -269,6 +269,7 @@ function makePackRequest(req, res, type) {
         try { fs.unlinkSync(zipPath); }
         catch (e) { console.log(e) }
     });
+
     let downloadTotals = JSON.parse('{}')
     if (fs.existsSync(`downloadTotals${type}.json`)) downloadTotals = loadJson(`downloadTotals${type}.json`)
     if (!downloadTotals.hasOwnProperty('total')) {
@@ -281,5 +282,8 @@ function makePackRequest(req, res, type) {
         }
         downloadTotals[selectedPacks.raw[i]] += 1
     }
-    dumpJson(`downloadTotals${type}.json`, downloadTotals)
+    const sortedDownloadTotals = Object.entries(downloadTotals);
+    sortedDownloadTotals.sort((a, b) => b[1] - a[1]);
+    const sortedData = Object.fromEntries(sortedDownloadTotals);
+    dumpJson(`downloadTotals${type}.json`, sortedData)
 }
