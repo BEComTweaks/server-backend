@@ -94,7 +94,8 @@ function lsdir(directory) {
 }
 
 let mf = loadJson(`${cdir('resource')}/jsons/others/manifest.json`);
-function manifestGenerator(selectedPacks, packName, type) {
+function manifestGenerator(selectedPacks, packName, type, mcVersion) {
+    const regex = /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
     mf = loadJson(`${cdir(type)}/jsons/others/manifest.json`);
     mf.header.name = packName
     let description = "";
@@ -107,8 +108,19 @@ function manifestGenerator(selectedPacks, packName, type) {
         }
     }
     mf.header.description = description.slice(1);
+    if (regex.test(mcVersion)) {
+        let splitMCVersion=[]
+        console.log(mcVersion.split(".")[1])
+        for(var i=0;i<3;i++){
+            if(mcVersion.split(".")[i])splitMCVersion[i]=parseInt(mcVersion.split(".")[i])
+            else splitMCVersion[i]=0
+        }
+        mf.header.min_engine_version = (splitMCVersion)
+    }
+    else mf.header.min_engine_version=[1,21,0]
     mf.header.uuid = uuidv4();
     mf.modules[0].uuid = uuidv4();
+    console.log(mf)
     const packDir = `${cdir()}/${mf.header.name}`;
     if (!fs.existsSync(packDir)) {
         fs.mkdirSync(packDir, { recursive: true });
@@ -124,7 +136,7 @@ function listOfFromDirectories(selectedPacks, type) {
 
     for (let category in selPacks) {
         if (category !== "raw") {
-			const nameToJson = loadJson(`${cdir(type)}/jsons/others/name_to_json.json`);
+            const nameToJson = loadJson(`${cdir(type)}/jsons/others/name_to_json.json`);
             const ctopic = loadJson(`${cdir(type)}/jsons/packs/${nameToJson[category]}`);
             selPacks[category].packs.forEach((pack, index) => {
                 let compatible = false;
@@ -199,9 +211,8 @@ function deepMerge(target, source) {
     return target;
 }
 
-function exportPack(selectedPacks, packName, type) {
-    console.log(type)
-    manifestGenerator(selectedPacks, packName, type);
+function exportPack(selectedPacks, packName, type, mcVersion) {
+    manifestGenerator(selectedPacks, packName, type, mcVersion);
     const fromDir = listOfFromDirectories(selectedPacks, type);
     console.log(`Exporting at ${cdir()}${path.sep}${mf.header.name}...`);
     fromDir.forEach(from => mainCopyFile(from));
@@ -258,7 +269,8 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
 function makePackRequest(req, res, type) {
     const packName = req.headers.packname
     const selectedPacks = req.body;
-    const zipPath = exportPack(selectedPacks, packName, type);
+    const mcVersion = req.headers.mcversion
+    const zipPath = exportPack(selectedPacks, packName, type, mcVersion);
 
     res.download(zipPath, `${path.basename(zipPath)}`, err => {
         if (err) {
