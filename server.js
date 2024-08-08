@@ -222,7 +222,7 @@ function exportPack(selectedPacks, packName, type, mcVersion) {
     console.log(`${mf.header.name}.zip 1/2`);
     let command;
     if (process.platform === "win32") {
-        command = `cd ${cdir()} && powershell Compress-Archive -Path ${mf.header.name} -DestinationPath ${mf.header.name}.zip`;
+        command = `cd ${cdir()} && powershell Compress-Archive -Path "${mf.header.name}" -DestinationPath "${mf.header.name}.zip"`;
     } else {
         command = `cd "${cdir()}";zip -r "${mf.header.name}.zip" "${mf.header.name}"`;
     }
