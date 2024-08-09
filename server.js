@@ -110,7 +110,7 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
     mf.header.description = description.slice(1);
     if (regex.test(mcVersion)) {
         let splitMCVersion=[]
-        console.log(mcVersion.split(".")[1])
+		console.log(`min_engine_version set to ${mcVersion.split(".")[1]}`)
         for(var i=0;i<3;i++){
             if(mcVersion.split(".")[i])splitMCVersion[i]=parseInt(mcVersion.split(".")[i])
             else splitMCVersion[i]=0
@@ -120,7 +120,6 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
     else mf.header.min_engine_version=[1,21,0]
     mf.header.uuid = uuidv4();
     mf.modules[0].uuid = uuidv4();
-    console.log(mf)
     const packDir = `${cdir()}/${mf.header.name}`;
     if (!fs.existsSync(packDir)) {
         fs.mkdirSync(packDir, { recursive: true });
