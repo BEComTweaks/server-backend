@@ -100,7 +100,7 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
     mf.header.name = packName
     let description = "";
     for (let i in selectedPacks) {
-        if (i !== "raw") {
+        if (i !== "raw" && selectedPacks[i]["packs"].length !== 0){
             description += `\n${i}`;
             selectedPacks[i].packs.forEach(p => {
                 description += `\n\t${p}`;
