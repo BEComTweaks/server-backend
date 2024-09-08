@@ -220,38 +220,20 @@ function exportPack(selectedPacks, packName, type, mcVersion) {
     const targetPackDir = `${cdir()}/${mf.header.name}`;
     console.log(`selected_packs.json 1/1`);
     fs.writeFileSync(path.join(targetPackDir, 'selected_packs.json'), JSON.stringify(selectedPacks))
-    return new Promise((resolve, reject) => {
-        console.log(`${mf.header.name}.zip 1/2`);
-        
-        const archivePath = path.join(cdir(), `${mf.header.name}.zip`);
-        const output = fs.createWriteStream(archivePath);
-        const archive = archiver('zip', { zlib: { level: 0 } });
+    const packName = req.headers.packname
+    const selectedPacks = req.body;
+    const mcVersion = req.headers.mcversion
+    const zipPath = exportPack(selectedPacks, packName, type, mcVersion);
 
-        output.on('close', () => {
-            console.log(`${mf.header.name}.mcpack 2/2`);
-            const newFilePath = path.join(cdir(), `${mf.header.name}.mcpack`);
-            try {
-                fs.renameSync(archivePath, newFilePath);
-                fs.rmSync(targetPackDir, { recursive: true });
-            } catch (error) {
-                console.error(`Error renaming file: ${error.message}`);
-                reject(new Error(`File ${archivePath} could not be renamed.`));
-                return;
-            }
-            console.log(`Finished exporting the pack!`);
-            resolve(newFilePath); // Resolve with the path of the mcpack
-        });
-
-        archive.on('error', (err) => {
-            reject(err); // Reject the promise if an error occurs
-        });
-
-        console.log("Piping");
-        archive.pipe(output);
-        archive.directory(targetPackDir, true);
-        archive.finalize();
-    });
-}
+    res.download(zipPath, `${path.basename(zipPath)}`, err => {
+        if (err) {
+            console.error('Error downloading the file:', err);
+            try { res.status(500).send('Error downloading the file.'); }
+            catch (e) { console.log(e) }
+        }
+        try { fs.unlinkSync(zipPath); }
+        catch (e) { console.log(e) }
+    });}
 
 
 function loadJson(path) {
@@ -285,47 +267,35 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
 });
 
 function makePackRequest(req, res, type) {
-    const packName = req.headers.packname;
+    const packName = req.headers.packname
     const selectedPacks = req.body;
-    const mcVersion = req.headers.mcversion;
+    const mcVersion = req.headers.mcversion
+    const zipPath = exportPack(selectedPacks, packName, type, mcVersion);
 
-    exportPack(selectedPacks, packName, type, mcVersion)
-        .then((zipPath) => {
-            res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
-                if (err) {
-                    console.error('Error downloading the file:', err);
-                    try { res.status(500).send('Error downloading the file.'); }
-                    catch (e) { console.log(e); }
-                } else {
-                    try {
-                        fs.unlinkSync(zipPath); // Delete the file after successful download
-                        console.log(`Deleted file: ${zipPath}`);
-                    } catch (e) {
-                        console.log('Error deleting file:', e);
-                    }
-                }
-            });
+    res.download(zipPath, `${path.basename(zipPath)}`, err => {
+        if (err) {
+            console.error('Error downloading the file:', err);
+            try { res.status(500).send('Error downloading the file.'); }
+            catch (e) { console.log(e) }
+        }
+        try { fs.unlinkSync(zipPath); }
+        catch (e) { console.log(e) }
+    });
 
-            // Update download totals
-            let downloadTotals = JSON.parse('{}');
-            if (fs.existsSync(`downloadTotals${type}.json`)) downloadTotals = loadJson(`downloadTotals${type}.json`);
-            if (!downloadTotals.hasOwnProperty('total')) {
-                downloadTotals['total'] = 0;
-            }
-            downloadTotals['total'] += 1;
-            for (let i in selectedPacks.raw) {
-                if (!downloadTotals.hasOwnProperty(selectedPacks.raw[i])) {
-                    downloadTotals[selectedPacks.raw[i]] = 0;
-                }
-                downloadTotals[selectedPacks.raw[i]] += 1;
-            }
-            const sortedDownloadTotals = Object.entries(downloadTotals);
-            sortedDownloadTotals.sort((a, b) => b[1] - a[1]);
-            const sortedData = Object.fromEntries(sortedDownloadTotals);
-            dumpJson(`downloadTotals${type}.json`, sortedData);
-        })
-        .catch((err) => {
-            console.error('Error exporting pack:', err);
-            res.status(500).send('Error exporting the pack.');
-        });
+    let downloadTotals = JSON.parse('{}')
+    if (fs.existsSync(`downloadTotals${type}.json`)) downloadTotals = loadJson(`downloadTotals${type}.json`)
+    if (!downloadTotals.hasOwnProperty('total')) {
+        downloadTotals['total'] = 0
+    }
+    downloadTotals['total'] += 1
+    for (var i in selectedPacks.raw) {
+        if (!downloadTotals.hasOwnProperty(selectedPacks.raw[i])) {
+            downloadTotals[selectedPacks.raw[i]] = 0
+        }
+        downloadTotals[selectedPacks.raw[i]] += 1
+    }
+    const sortedDownloadTotals = Object.entries(downloadTotals);
+    sortedDownloadTotals.sort((a, b) => b[1] - a[1]);
+    const sortedData = Object.fromEntries(sortedDownloadTotals);
+    dumpJson(`downloadTotals${type}.json`, sortedData)
 }
