@@ -230,8 +230,14 @@ function exportPack(selectedPacks, packName, type, mcVersion) {
         output.on('close', () => {
             console.log(`${mf.header.name}.mcpack 2/2`);
             const newFilePath = path.join(cdir(), `${mf.header.name}.mcpack`);
-            fs.renameSync(archivePath, newFilePath);
-            fs.rmSync(targetPackDir, { recursive: true });
+            try {
+                fs.renameSync(archivePath, newFilePath);
+                fs.rmSync(targetPackDir, { recursive: true });
+            } catch (error) {
+                console.error(`Error renaming file: ${error.message}`);
+                reject(new Error(`File ${archivePath} could not be renamed.`));
+                return;
+            }
             console.log(`Finished exporting the pack!`);
             resolve(newFilePath); // Resolve with the path of the mcpack
         });
