@@ -102,7 +102,7 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
     mf.header.name = packName
     let description = "";
     for (let i in selectedPacks) {
-        if (i !== "raw" && selectedPacks[i]["packs"].length !== 0){
+        if (i !== "raw" && selectedPacks[i]["packs"].length !== 0) {
             description += `\n${i}`;
             selectedPacks[i].packs.forEach(p => {
                 description += `\n\t${p}`;
@@ -111,15 +111,15 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
     }
     mf.header.description = description.slice(1);
     if (regex.test(mcVersion)) {
-        let splitMCVersion=[]
-		console.log(`min_engine_version set to ${mcVersion.split(".")[1]}`)
-        for(var i=0;i<3;i++){
-            if(mcVersion.split(".")[i])splitMCVersion[i]=parseInt(mcVersion.split(".")[i])
-            else splitMCVersion[i]=0
+        let splitMCVersion = []
+        console.log(`min_engine_version set to ${mcVersion.split(".")[1]}`)
+        for (var i = 0; i < 3; i++) {
+            if (mcVersion.split(".")[i]) splitMCVersion[i] = parseInt(mcVersion.split(".")[i])
+            else splitMCVersion[i] = 0
         }
         mf.header.min_engine_version = (splitMCVersion)
     }
-    else mf.header.min_engine_version=[1,21,0]
+    else mf.header.min_engine_version = [1, 21, 0]
     mf.header.uuid = uuidv4();
     mf.modules[0].uuid = uuidv4();
     const packDir = `${cdir()}/${mf.header.name}`;
@@ -220,21 +220,21 @@ function exportPack(selectedPacks, packName, type, mcVersion) {
     const targetPackDir = `${cdir()}/${mf.header.name}`;
     console.log(`selected_packs.json 1/1`);
     fs.writeFileSync(path.join(targetPackDir, 'selected_packs.json'), JSON.stringify(selectedPacks))
-    const packName = req.headers.packname
-    const selectedPacks = req.body;
-    const mcVersion = req.headers.mcversion
-    const zipPath = exportPack(selectedPacks, packName, type, mcVersion);
-
-    res.download(zipPath, `${path.basename(zipPath)}`, err => {
-        if (err) {
-            console.error('Error downloading the file:', err);
-            try { res.status(500).send('Error downloading the file.'); }
-            catch (e) { console.log(e) }
-        }
-        try { fs.unlinkSync(zipPath); }
-        catch (e) { console.log(e) }
-    });}
-
+    console.log(`${mf.header.name}.zip 1/2`);
+    let command;
+    if (process.platform === "win32") {
+        command = `cd ${cdir()} && powershell Compress-Archive -Path "${mf.header.name}" -DestinationPath "${mf.header.name}.zip"`;
+    } else {
+        command = `cd "${cdir()}";zip -r "${mf.header.name}.zip" "${mf.header.name}"`;
+    }
+    execSync(command);
+    console.log(`${mf.header.name}.mcpack 2/2`);
+    fs.renameSync(`${path.join(cdir(), mf.header.name)}.zip`, `${path.join(cdir(), mf.header.name)}.mcpack`);
+    fs.rmSync(targetPackDir, { recursive: true });
+    console.log(`Finished exporting the pack!`);
+    console.log("It is now available at", `${path.sep}${mf.header.name}.mcpack`);
+    return `${path.join(cdir(), mf.header.name)}.mcpack`;
+}
 
 function loadJson(path) {
     try {
