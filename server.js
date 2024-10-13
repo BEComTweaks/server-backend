@@ -37,6 +37,7 @@ const cors = require('cors');
 const https = require('https');
 const httpsPort = 443;
 const httpPort = 80;
+const funnyurl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 try {
     const privateKey = fs.readFileSync('private.key', 'utf8');
     const certificate = fs.readFileSync('certificate.crt', 'utf8');
@@ -60,12 +61,12 @@ try {
         makePackRequest(req, res, 'crafting')
     });
     httpsApp.get('*', (req, res) => {
-        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        res.redirect(funnyurl);
         console.log("Someone accesssed the IP. Rickrolled them instead.")
     });
     
     httpsApp.post('', (req, res) => {
-        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        res.redirect(funnyurl);
         console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
     });
     httpsApp.post('/update', (req, res) => {
@@ -304,12 +305,12 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
 });
 
 httpApp.get('*', (req, res) => {
-    res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    res.redirect(funnyurl);
     console.log("Someone accesssed the IP. Rickrolled them instead.")
 });
 
 httpApp.post('', (req, res) => {
-    res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    res.redirect(funnyurl);
     console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
 });
 
