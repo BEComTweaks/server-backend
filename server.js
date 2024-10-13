@@ -55,6 +55,15 @@ try {
     httpsApp.post('/exportCraftingTweak', (req, res) => {
         makePackRequest(req, res, 'crafting')
     });
+    httpsApp.get('', (req, res) => {
+        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        console.log("Someone accesssed the IP. Rickrolled them instead.")
+    });
+    
+    httpsApp.post('', (req, res) => {
+        res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+    });
 }
 catch (e) {
     console.log(`error with https\n ${e}`);
