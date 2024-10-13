@@ -30,7 +30,6 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const https = require('https');
-const archiver = require('archiver');
 const httpsPort = 443;
 const httpPort = 80;
 try {
@@ -55,7 +54,7 @@ try {
     httpsApp.post('/exportCraftingTweak', (req, res) => {
         makePackRequest(req, res, 'crafting')
     });
-    httpsApp.get('', (req, res) => {
+    httpsApp.get('*', (req, res) => {
         res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
         console.log("Someone accesssed the IP. Rickrolled them instead.")
     });
@@ -63,6 +62,30 @@ try {
     httpsApp.post('', (req, res) => {
         res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
         console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+    });
+    httpsApp.post('/update', (req, res) => {
+        const key = req.query.key;
+        if (!key) {
+            return res.status(400).send('Missing key parameter.');
+        }
+        if (!fs.existsSync(secretStuffPath)) {
+            const newkey = uuidv4();
+            const secretStuff = { key: newkey };
+            dumpJson(secretStuffPath, secretStuff);
+            return res.status(500).send('Secret stuff file not found. Made a new one.');
+        }
+        const secretStuff = loadJson(secretStuffPath);
+        const storedkey = secretStuff.key;
+        if (key === storedkey) {
+            console.log('Pulling from git...');
+            execSync('git pull');
+            console.log('Pulled from git.');
+            return res.status(200).send('Pulled from git.');
+        } else {
+            console.log("Someone tried to bruteforce the key.");
+            console.log(storedkey, secretStuffPath);
+            return res.status(401).send("Invalid key. Don't try to bruteforce it.");
+        }
     });
 }
 catch (e) {
@@ -82,6 +105,7 @@ function cdir(type) {
     else return currentdir + '/makePacks'
 }
 
+const secretStuffPath = path.join(currentdir,'secretstuff.json');
 
 function lsdir(directory) {
     let folderList = [];
@@ -275,7 +299,7 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
     makePackRequest(req, res, 'crafting')
 });
 
-httpApp.get('', (req, res) => {
+httpApp.get('*', (req, res) => {
     res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     console.log("Someone accesssed the IP. Rickrolled them instead.")
 });
@@ -283,6 +307,11 @@ httpApp.get('', (req, res) => {
 httpApp.post('', (req, res) => {
     res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
     console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+});
+
+httpApp.post('/update', (req, res) => {
+    res.send("Lazy ass, just do it yourself");
+    console.log("Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?")
 });
 
 function makePackRequest(req, res, type) {
