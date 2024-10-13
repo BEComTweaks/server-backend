@@ -14,9 +14,20 @@ git clone https://github.com/BEComTweaks/server-backend --recursive
 ```
 <sub> Recursive is neccessary due to submodules</sub>
 
-To start server
-```cmd
-node server.js
+---
+
+Install Modules
+
+```sh
+npm install
 ```
-<sub> On linux and mac run this command with sudo or a program like authbind to allow usage of ports below 1024
+---
+
+Start server
+
+```sh
+npx nodemon server.js
+```
+<sub> On linux and mac run this command with sudo or a program like authbind to allow usage of ports below 1024</sub>
+
 Then just go to the local website and download your packs! It will use localhost instead of the actual server ip

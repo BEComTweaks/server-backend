@@ -7,7 +7,7 @@ const requiredPackages = [
     'uuid',
     'cors',
     'https',
-    'archiver'
+    'nodemon'
 ];
 
 function checkAndInstallPackages(packages) {
@@ -23,6 +23,11 @@ function checkAndInstallPackages(packages) {
 }
 
 checkAndInstallPackages(requiredPackages);
+if (process.env.npm_lifecycle_script !== 'nodemon') {
+    console.warn('Use nodemon to run the server.');
+    console.warn('Command: `npx nodemon server.js`');
+    process.exit(0);
+}
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -264,8 +269,7 @@ function exportPack(selectedPacks, packName, type, mcVersion) {
     console.log(`${mf.header.name}.mcpack 2/2`);
     fs.renameSync(`${path.join(cdir(), mf.header.name)}.zip`, `${path.join(cdir(), mf.header.name)}.mcpack`);
     fs.rmSync(targetPackDir, { recursive: true });
-    console.log(`Finished exporting the pack!`);
-    console.log("It is now available at", `${path.sep}${mf.header.name}.mcpack`);
+    console.log(`Exported at ${cdir()}${path.sep}${mf.header.name}.mcpack`);
     return `${path.join(cdir(), mf.header.name)}.mcpack`;
 }
 
