@@ -86,6 +86,9 @@ try {
             console.log('Pulling from git...');
             execSync('git pull');
             console.log('Pulled from git.');
+            console.log('Updating Submodules')
+            execSync('git submodule update')
+            console.log('Updated Submodules')
             return res.status(200).send('Pulled from git.');
         } else {
             console.log("Someone tried to bruteforce the key.");
