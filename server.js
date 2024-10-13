@@ -266,6 +266,16 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
     makePackRequest(req, res, 'crafting')
 });
 
+httpApp.get('', (req, res) => {
+    res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    console.log("Someone accesssed the IP. Rickrolled them instead.")
+});
+
+httpApp.post('', (req, res) => {
+    res.redirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+});
+
 function makePackRequest(req, res, type) {
     const packName = req.headers.packname
     const selectedPacks = req.body;
