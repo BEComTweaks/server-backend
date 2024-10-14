@@ -64,7 +64,7 @@ try {
         res.redirect(funnyurl);
         console.log("Someone accesssed the IP. Rickrolled them instead.")
     });
-    
+    httpsApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
     httpsApp.post('', (req, res) => {
         res.redirect(funnyurl);
         console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
@@ -114,7 +114,7 @@ function cdir(type) {
     else return currentdir + '/makePacks'
 }
 
-const secretStuffPath = path.join(currentdir,'secretstuff.json');
+const secretStuffPath = path.join(currentdir, 'secretstuff.json');
 
 function lsdir(directory) {
     let folderList = [];
@@ -307,6 +307,7 @@ httpApp.post('/exportCraftingTweak', (req, res) => {
     makePackRequest(req, res, 'crafting')
 });
 
+httpApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
 httpApp.get('*', (req, res) => {
     res.redirect(funnyurl);
     console.log("Someone accesssed the IP. Rickrolled them instead.")
