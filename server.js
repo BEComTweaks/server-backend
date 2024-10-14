@@ -60,11 +60,11 @@ try {
     httpsApp.post('/exportCraftingTweak', (req, res) => {
         makePackRequest(req, res, 'crafting')
     });
+    httpsApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
     httpsApp.get('*', (req, res) => {
         res.redirect(funnyurl);
         console.log("Someone accesssed the IP. Rickrolled them instead.")
     });
-    httpsApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
     httpsApp.post('', (req, res) => {
         res.redirect(funnyurl);
         console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
