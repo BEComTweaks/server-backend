@@ -51,28 +51,25 @@ try {
     httpsApp.use(cors());
     httpsApp.use(bodyParser.json());
 
-    httpsApp.post('/exportResourcePack', (req, res) => {
-        makePackRequest(req, res, 'resource')
-    });
-    httpsApp.post('/exportBehaviourPack', (req, res) => {
-        makePackRequest(req, res, 'behaviour')
-    });
-    httpsApp.post('/exportCraftingTweak', (req, res) => {
-        makePackRequest(req, res, 'crafting')
-    });
-    httpsApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
-    httpsApp.get('*', (req, res) => {
-        res.redirect(funnyurl);
-        console.log("Someone accesssed the IP. Rickrolled them instead.")
-    });
-    httpsApp.post('', (req, res) => {
-        res.redirect(funnyurl);
-        console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+    httpsApp.post('/exportResourcePack', (req, res) => {makePackRequest(req, res, 'resource')});
+    httpsApp.post('/exportBehaviourPack', (req, res) => {makePackRequest(req, res, 'behaviour')});
+    httpsApp.post('/exportCraftingTweak', (req, res) => {makePackRequest(req, res, 'crafting')});
+    httpsApp.get('/downloadTotals', (req, res) => {
+        const type = req.query.type;
+        if (!type) {
+            res.redirect(funnyurl);
+        } else {
+            if (fs.existsSync(`${cdir('base')}/downloadTotals${type}.json`)) {
+                res.sendFile(`${cdir('base')}/downloadTotals${type}.json`);
+            } else {
+                res.redirect(funnyurl);
+            }
+        }
     });
     httpsApp.post('/update', (req, res) => {
         const key = req.query.key;
         if (!key) {
-            return res.status(400).send('Missing key parameter.');
+            res.redirect(funnyurl);
         }
         if (!fs.existsSync(secretStuffPath)) {
             const newkey = uuidv4();
@@ -92,9 +89,17 @@ try {
             return res.status(200).send('Pulled from git.');
         } else {
             console.log("Someone tried to bruteforce the key.");
-            console.log(storedkey, secretStuffPath);
-            return res.status(401).send("Invalid key. Don't try to bruteforce it.");
+            res.redirect(funnyurl);
         }
+    });
+    httpsApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
+    httpsApp.get('*', (req, res) => {
+        res.redirect(funnyurl);
+        console.log("Someone accesssed the IP. Rickrolled them instead.")
+    });
+    httpsApp.post('*', (req, res) => {
+        res.redirect(funnyurl);
+        console.log("Rick Roll attempt.")
     });
 }
 catch (e) {
@@ -110,7 +115,8 @@ let currentdir = process.cwd();
 function cdir(type) {
     if (type == 'resource') return currentdir + '/resource-packs';
     else if (type == 'behaviour') return currentdir + '/behaviour-packs';
-    else if (type == 'crafting') return currentdir + '/crafting-tweaks'
+    else if (type == 'crafting') return currentdir + '/crafting-tweaks';
+    else if (type == 'base') return currentdir;
     else return currentdir + '/makePacks'
 }
 
@@ -295,32 +301,36 @@ httpApp.listen(httpPort, () => {
     console.log(`Http server is running at http://localhost:${httpPort}`);
 });
 
-httpApp.post('/exportResourcePack', (req, res) => {
-    makePackRequest(req, res, 'resource')
+httpApp.post('/exportResourcePack', (req, res) => {makePackRequest(req, res, 'resource')});
 
-});
-httpApp.post('/exportBehaviourPack', (req, res) => {
-    makePackRequest(req, res, 'behaviour')
+httpApp.post('/exportBehaviourPack', (req, res) => {makePackRequest(req, res, 'behaviour')});
 
-});
-httpApp.post('/exportCraftingTweak', (req, res) => {
-    makePackRequest(req, res, 'crafting')
-});
+httpApp.post('/exportCraftingTweak', (req, res) => {makePackRequest(req, res, 'crafting')});
 
-httpApp.get('/checkOnline', (req, res) => { res.status(200).send('Online') })
-httpApp.get('*', (req, res) => {
-    res.redirect(funnyurl);
-    console.log("Someone accesssed the IP. Rickrolled them instead.")
-});
-
-httpApp.post('', (req, res) => {
-    res.redirect(funnyurl);
-    console.log("Rick Roll attempt, but POST request meant they know what they are doing.")
+httpApp.get('/downloadTotals', (req, res) => {
+    const type = req.query.type;
+    if (!type) {
+        res.send("You need a specified query. The only query available is `type`.");
+    } else {
+        if (fs.existsSync(`${cdir('base')}/downloadTotals${type}.json`)) {
+            res.sendFile(`${cdir('base')}/downloadTotals${type}.json`);
+        } else {
+            res.send(`There is no such file called downloadTotals${type}.json at the root directory`);
+        }
+    }
 });
 
 httpApp.post('/update', (req, res) => {
     res.send("Lazy ass, just do it yourself");
     console.log("Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?")
+});
+
+httpApp.get('*', (req, res) => {
+    res.send("There's nothing here, you should probably enter into the submodules to find the website.")
+});
+
+httpApp.post('*', (req, res) => {
+    res.send("There's nothing here, you should probably enter into the submodules to find the website.")
 });
 
 function makePackRequest(req, res, type) {
@@ -354,5 +364,5 @@ function makePackRequest(req, res, type) {
     const sortedDownloadTotals = Object.entries(downloadTotals);
     sortedDownloadTotals.sort((a, b) => b[1] - a[1]);
     const sortedData = Object.fromEntries(sortedDownloadTotals);
-    dumpJson(`downloadTotals${type}.json`, sortedData)
+    dumpJson(`downloadTotals${type}.json`, sortedData);
 }
