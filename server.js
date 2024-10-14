@@ -90,7 +90,7 @@ try {
     if (key === storedkey) {
       try {
         console.log("Pulling from git...");
-        const gitPullOutput = execSync("git pull").toString();
+        const gitPullOutput = execSync("git pull --rebase").toString();
         console.log("Pulled from git.");
         console.log("Updating Submodules...");
         const gitSubmoduleOutput = execSync("git submodule update").toString();
