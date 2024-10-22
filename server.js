@@ -289,17 +289,22 @@ function listOfFromDirectories(selectedPacks, type) {
           compatible = true;
         }
         if (!compatible) {
-          ctopic.packs[selPacks[category].index[index]].compatibility.forEach(
-            (k) => {
-              if (selPacks.raw && selPacks.raw.includes(k)) {
-                fromDir.push(
-                  `${cdir(type)}/packs/${category.toLowerCase()}/${pack}/${k}`,
-                );
-                addedPacks.push(pack, k);
-                compatible = true;
-              }
-            },
-          );
+          try {
+            ctopic.packs[selPacks[category].index[index]].compatibility.forEach(
+              (k) => {
+                if (selPacks.raw && selPacks.raw.includes(k)) {
+                  fromDir.push(
+                    `${cdir(type)}/packs/${category.toLowerCase()}/${pack}/${k}`,
+                  );
+                  addedPacks.push(pack, k);
+                  compatible = true;
+                }
+              },
+            );
+          } catch (TypeError) {
+            // No compatibility key because it
+            // isnt compulsory          
+          }
         }
         if (!compatible) {
           fromDir.push(
