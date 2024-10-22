@@ -1,6 +1,7 @@
 [submodule "resource-packs"]
 	path = resource-packs
 	url = https://github.com/becomtweaks/resource-packs.git
+	branch = remove-empty-keys
 [submodule "behaviour-packs"]
 	path = behaviour-packs
 	url = https://github.com/becomtweaks/behaviour-packs.git
