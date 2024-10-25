@@ -31,7 +31,6 @@ const cors = require("cors");
 const https = require("https");
 const httpsPort = 443;
 const httpPort = 80;
-const funnyurl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 try {
   const privateKey = fs.readFileSync("private.key", "utf8");
   const certificate = fs.readFileSync("certificate.crt", "utf8");
@@ -61,20 +60,14 @@ try {
   });
   httpsApp.get("/downloadTotals", (req, res) => {
     const type = req.query.type;
-    if (!type) {
-      res.redirect(funnyurl);
-    } else {
-      if (fs.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
+    if (fs.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
         res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
-      } else {
-        res.redirect(funnyurl);
-      }
     }
   });
   httpsApp.post("/update", (req, res) => {
     const key = req.query.key;
     if (!key) {
-      res.redirect(funnyurl);
+      res.send("You need a key to update the server.");
     }
     if (!fs.existsSync(secretStuffPath)) {
       const newkey = uuidv4();
@@ -119,8 +112,7 @@ try {
         return res.status(500).send(errorResponse);
       }
     } else {
-      console.log("Someone tried to bruteforce the key.");
-      res.redirect(funnyurl);
+      res.send("Wrong key!");
     }
   });
   httpsApp.get("/checkOnline", (req, res) => {
@@ -176,15 +168,11 @@ try {
     }
   });
   httpsApp.get("*", (req, res) => {
-    res.redirect(funnyurl);
+    res.redirect("https://becomtweaks.github.io");
     console.log("Someone accesssed the IP. Rickrolled them instead.");
   });
-  httpsApp.post("*", (req, res) => {
-    res.redirect(funnyurl);
-    console.log("Rick Roll attempt.");
-  });
 } catch (e) {
-  console.log(`error with https\n ${e}`);
+  console.log(`HTTPS error: ${e}`);
 }
 
 const httpApp = express();
