@@ -14,7 +14,6 @@ function checkAndInstallPackages(packages) {
   packages.forEach((pkg) => {
     try {
       require.resolve(pkg);
-      console.log(`${pkg} is already installed.`);
     } catch (e) {
       console.log(`${pkg} is not installed. Installing...`);
       execSync(`npm install ${pkg}`, { stdio: "inherit" });
@@ -23,11 +22,6 @@ function checkAndInstallPackages(packages) {
 }
 
 checkAndInstallPackages(requiredPackages);
-if (process.env.npm_lifecycle_script !== "nodemon") {
-  console.warn("Use nodemon to run the server.");
-  console.warn("Command: `npx nodemon server.js`");
-  process.exit(0);
-}
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
@@ -45,6 +39,11 @@ try {
   const credentials = { key: privateKey, cert: certificate, ca: ca };
   const httpsApp = express();
   const httpsServer = https.createServer(credentials, httpsApp);
+  if (process.env.npm_lifecycle_script !== "nodemon") {
+    console.warn("Use nodemon to run the server.");
+    console.warn("Command: `npx nodemon server.js`");
+    process.exit(0);
+  }
   httpsServer.listen(httpsPort, () => {
     console.log(`Https server is running at https://localhost:${httpsPort}`);
   });
@@ -414,6 +413,11 @@ function loadJson(path) {
 function dumpJson(path, dictionary) {
   const data = JSON.stringify(dictionary);
   fs.writeFileSync(path, data, "utf-8");
+}
+
+if (process.env.npm_lifecycle_script !== "nodemon") {
+  console.warn("You are recommended to use nodemon when developing on the server.");
+  console.warn("Command: `npx nodemon server.js`");
 }
 
 httpApp.listen(httpPort, () => {
