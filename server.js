@@ -34,8 +34,13 @@ const httpPort = 80;
 try {
   const privateKey = fs.readFileSync("private.key", "utf8");
   const certificate = fs.readFileSync("certificate.crt", "utf8");
-  const ca = fs.readFileSync("ca_bundle.crt", "utf8");
-  const credentials = { key: privateKey, cert: certificate, ca: ca };
+  let credentials;
+  if (fs.existsSync("ca_bundle.crt")) {
+    const ca = fs.readFileSync("ca_bundle.crt", "utf8");
+    credentials = { key: privateKey, cert: certificate, ca: ca };
+  } else {
+    credentials = { key: privateKey, cert: certificate };
+  }
   const httpsApp = express();
   const httpsServer = https.createServer(credentials, httpsApp);
   if (process.env.npm_lifecycle_script !== "nodemon") {
