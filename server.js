@@ -232,7 +232,7 @@ function manifestGenerator(selectedPacks, packName, type, mcVersion) {
   mf.header.description = description.slice(1);
   if (regex.test(mcVersion)) {
     let splitMCVersion = [];
-    console.log(`min_engine_version set to ${mcVersion.split(".")[1]}`);
+    console.log(`min_engine_version set to ${mcVersion}`);
     for (var i = 0; i < 3; i++) {
       if (mcVersion.split(".")[i])
         splitMCVersion[i] = parseInt(mcVersion.split(".")[i]);
@@ -257,12 +257,16 @@ function listOfFromDirectories(selectedPacks, type) {
   selPacks = selectedPacks;
   let addedPacks = [];
   let fromDir = [];
+  let priorities = [];
+  const nameToJson = loadJson(
+    `${cdir(type)}/jsons/others/name_to_json.json`,
+  );
+  const incompleteCompatibility = loadJson(
+    `${cdir(type)}/jsons/others/incomplete_compatibilities.json`,
+  );
 
   for (let category in selPacks) {
     if (category !== "raw") {
-      const nameToJson = loadJson(
-        `${cdir(type)}/jsons/others/name_to_json.json`,
-      );
       const ctopic = loadJson(
         `${cdir(type)}/jsons/packs/${nameToJson[category]}`,
       );
@@ -273,13 +277,16 @@ function listOfFromDirectories(selectedPacks, type) {
             ctopic.packs[selPacks[category].index[index]].pack_id,
           )
         ) {
+          // This part is when compatibility for another pack
+          // led this certain pack to be already added
           compatible = true;
         }
         if (!compatible) {
           try {
             ctopic.packs[selPacks[category].index[index]].compatibility.forEach(
               (k) => {
-                if (selPacks.raw && selPacks.raw.includes(k)) {
+                if (selPacks.raw && selPacks.raw.includes(k) && !incompleteCompatibility[selpacks[category].packs[index]].includes(k)) {
+                  // There is a pack that can use compatibilities
                   fromDir.push(
                     `${cdir(type)}/packs/${category.toLowerCase()}/${pack}/${k}`,
                   );
@@ -294,22 +301,28 @@ function listOfFromDirectories(selectedPacks, type) {
           }
         }
         if (!compatible) {
+          // when there is no compatibility with other packs
+          // so it just uses the default pack
           fromDir.push(
             `${cdir(type)}/packs/${category.toLowerCase()}/${pack}/default`,
           );
           addedPacks.push(pack);
         }
+        if (ctopic.packs[selPacks[category].index[index]].priority) {
+          priorities.push(
+            ctopic.packs[selPacks[category].index[index]].pack_id,
+          );
+        }
       });
     }
   }
-  return fromDir;
+  return [fromDir, priorities];
 }
 
-function mainCopyFile(fromDir) {
+function mainCopyFile(fromDir, priorities) {
   const fromListDir = lsdir(fromDir);
   const toDir = `${cdir()}/${mf.header.name}`;
   const toListDir = lsdir(toDir);
-
   fromListDir.forEach((item, index) => {
     const progress = `${fromDir.split("/").slice(-2, -1)[0]} ${index + 1}/${fromListDir.length}`;
     process.stdout.write(
@@ -334,6 +347,9 @@ function mainCopyFile(fromDir) {
         } else if (item.endsWith(".lang")) {
           const fromLang = fs.readFileSync(path.join(fromDir, item), "utf-8");
           fs.appendFileSync(targetPath, `\n${fromLang}`);
+        }
+        else if (priorities.includes(`${fromDir.split("/").slice(-2, -1)[0]}`)) {
+          fs.copyFileSync(path.join(fromDir, item), targetPath);
         }
       } else {
         fs.copyFileSync(path.join(fromDir, item), targetPath);
@@ -362,9 +378,9 @@ function deepMerge(target, source) {
 
 function exportPack(selectedPacks, packName, type, mcVersion) {
   manifestGenerator(selectedPacks, packName, type, mcVersion);
-  const fromDir = listOfFromDirectories(selectedPacks, type);
+  const [fromDir, priorities]  = listOfFromDirectories(selectedPacks, type);
   console.log(`Exporting at ${cdir()}${path.sep}${mf.header.name}...`);
-  fromDir.forEach((from) => mainCopyFile(from));
+  fromDir.forEach((from) => mainCopyFile(from, priorities));
   const targetPackDir = `${cdir()}/${mf.header.name}`;
   console.log(`selected_packs.json 1/1`);
   fs.writeFileSync(
