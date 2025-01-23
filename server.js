@@ -8,6 +8,7 @@ const requiredPackages = [
   "cors",
   "https",
   "nodemon",
+  "lodash",
 ];
 
 function checkAndInstallPackages(packages) {
@@ -29,6 +30,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const cors = require("cors");
 const https = require("https");
+const lodash = require("lodash");
 const httpsPort = 443;
 const httpPort = 80;
 try {
@@ -347,7 +349,7 @@ function mainCopyFile(fromDir, priorities) {
         if (item.endsWith(".json")) {
           const toJson = loadJson(targetPath);
           const fromJson = loadJson(path.join(fromDir, item));
-          const mergedJson = deepMerge(toJson, fromJson);
+          const mergedJson = lodash.merge(toJson, fromJson);
           dumpJson(targetPath, mergedJson);
         } else if (item.endsWith(".lang")) {
           const fromLang = fs.readFileSync(path.join(fromDir, item), "utf-8");
@@ -362,25 +364,6 @@ function mainCopyFile(fromDir, priorities) {
     }
   });
 }
-
-function deepMerge(target, source) {
-  for (const key in source) {
-    if (
-      source[key] &&
-      typeof source[key] === "object" &&
-      !Array.isArray(source[key])
-    ) {
-      if (!target[key]) {
-        target[key] = {};
-      }
-      deepMerge(target[key], source[key]);
-    } else {
-      target[key] = source[key];
-    }
-  }
-  return target;
-}
-
 function exportPack(selectedPacks, packName, type, mcVersion) {
   manifestGenerator(selectedPacks, packName, type, mcVersion);
   const [fromDir, priorities]  = listOfFromDirectories(selectedPacks, type);
