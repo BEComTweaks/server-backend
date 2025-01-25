@@ -3,5 +3,5 @@
         "./makePacks/*",
         "./downloadTotals**"
     ],
-    "delay":2500
+    "delay": 2500
 }
