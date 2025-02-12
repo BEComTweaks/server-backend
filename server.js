@@ -463,7 +463,7 @@ httpApp.post("*", (req, res) => {
 });
 
 function makePackRequest(req, res, type) {
-  const packName = req.headers.packname;
+  const packName = req.headers.packname.replace('"','').replace("'","").replace('`','');
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
   const zipPath = exportPack(selectedPacks, packName, type, mcVersion);
