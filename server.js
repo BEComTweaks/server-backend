@@ -33,6 +33,49 @@ const https = require("https");
 const lodash = require("lodash");
 const httpsPort = 443;
 const httpPort = 80;
+
+
+let currentdir = process.cwd();
+function cdir(type) {
+  if (type == "resource") return currentdir + "/resource-packs";
+  else if (type == "behaviour") return currentdir + "/behaviour-packs";
+  else if (type == "crafting") return currentdir + "/crafting-tweaks";
+  else if (type == "base") return currentdir;
+  else return currentdir + "/makePacks";
+}
+
+// Rebuild everything when you start the server
+console.log("Rebuilding...");
+console.log("Rebuilding resource packs...");
+process.chdir(`${cdir("base")}/resource-packs`);
+try {
+  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+} catch (error) {
+  console.error("Error during resource pack rebuild:", error.message);
+  process.exit(1);
+}
+console.log("Rebuilding behaviour packs...");
+process.chdir(`${cdir("base")}/behaviour-packs`);
+try {
+  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+} catch (error) {
+  console.error("Error during behaviour pack rebuild:", error.message);
+  process.exit(1);
+}
+
+console.log("Rebuilding crafting tweaks...");
+process.chdir(`${cdir("base")}/crafting-tweaks`);
+try {
+  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+} catch (error) {
+  console.error("Error during crafting tweaks rebuild:", error.message);
+  process.exit(1);
+}
+
+process.chdir(currentdir);
+console.log("Rebuild complete! Setting up server...");
+
+// Attempt to start https server
 try {
   const privateKey = filesystem.readFileSync("private.key", "utf8");
   const certificate = filesystem.readFileSync("certificate.crt", "utf8");
@@ -182,19 +225,11 @@ try {
   console.log(`HTTPS error: ${e}`);
 }
 
+// damn have to use http
 const httpApp = express();
 
 httpApp.use(cors());
 httpApp.use(bodyParser.json());
-
-let currentdir = process.cwd();
-function cdir(type) {
-  if (type == "resource") return currentdir + "/resource-packs";
-  else if (type == "behaviour") return currentdir + "/behaviour-packs";
-  else if (type == "crafting") return currentdir + "/crafting-tweaks";
-  else if (type == "base") return currentdir;
-  else return currentdir + "/makePacks";
-}
 
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 

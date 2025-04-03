@@ -1,13 +1,14 @@
 {
-  "name": "bedrock-tweaks-base-server",
+  "name": "becomtweaks-server-backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "BEComTweaks",
+  "license": "MIT",
   "dependencies": {
     "archiver": "^7.0.1",
     "body-parser": "^1.20.3",
@@ -20,5 +21,8 @@
     "ora": "^8.2.0",
     "path": "^0.12.7",
     "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
