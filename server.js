@@ -49,7 +49,8 @@ console.log("Rebuilding...");
 console.log("Rebuilding resource packs...");
 process.chdir(`${cdir("base")}/resource-packs`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("git add .");
 } catch (error) {
   console.error("Error during resource pack rebuild:", error.message);
   process.exit(1);
@@ -57,7 +58,8 @@ try {
 console.log("Rebuilding behaviour packs...");
 process.chdir(`${cdir("base")}/behaviour-packs`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("git add .");
 } catch (error) {
   console.error("Error during behaviour pack rebuild:", error.message);
   process.exit(1);
@@ -66,13 +68,25 @@ try {
 console.log("Rebuilding crafting tweaks...");
 process.chdir(`${cdir("base")}/crafting-tweaks`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build  server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("git add .");
 } catch (error) {
   console.error("Error during crafting tweaks rebuild:", error.message);
   process.exit(1);
 }
 
 process.chdir(currentdir);
+
+// Leads to times where you just cant pull even with rebase because git is just lovely
+console.log("Fixing incorrect JSON formatting")
+try {
+  execSync("pnpm exec prettier --write **/jsons/map/*.json", { stdio: "inherit" });
+  execSync("pnpm exec prettier --write **/config.json", { stdio: "inherit" });
+} catch (error) {
+  console.error("Error during formatting:", error.message);
+  process.exit(1);
+}
+
 console.log("Rebuild complete! Setting up server...");
 
 // Attempt to start https server
@@ -219,7 +233,7 @@ try {
   });
   httpsApp.get("*", (req, res) => {
     res.redirect("https://becomtweaks.github.io");
-    console.log("Someone accesssed the IP. Rickrolled them instead.");
+    console.log("Someone accesssed the IP. Redirected them to the correct site.");
   });
 } catch (e) {
   console.log(`HTTPS error: ${e}`);
@@ -311,7 +325,7 @@ function defaultFileGenerator(
   // generate the manifest
   const regex =
     /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
-  templateManifest = loadJson(`${cdir(type)}/jsons/others/manifest.json`);
+  templateManifest = loadJson(`${cdir(type)}/jsons/manifest.json`);
   templateManifest.header.name = packName;
   let description = "";
   for (let i in selectedPacks) {
@@ -360,50 +374,41 @@ function listOfFromDirectories(selectedPacks, type) {
   let addedPacks = [];
   let addedPacksPriority = []; // mapped priority of the fromDir
   let fromDir = [];
+  let addedCompatibilitiesPacks = []; // doesnt require priority, just exists for checking purposes
 
   const nameToJson = loadJson(`${cdir(type)}/jsons/map/name_to_json.json`);
-  const incompleteCompatibility = loadJson(
-    `${cdir(type)}/jsons/others/incomplete_compatibilities.json`,
-  );
   const priorityMap = loadJson(`${cdir(type)}/jsons/map/priority.json`);
   const compatibilities = loadJson(
-    `${cdir(type)}/jsons/packs/compatibilities.json`,
+    `${cdir(type)}/jsons/map/compatibility.json`,
   );
+  const comp_file = loadJson(`${cdir(type)}/jsons/packs/compatibilities.json`);
+  const max_comps = comp_file["max_simultaneous"];
 
-  for (let n = compatibilities["maxway"]; n >= 2; n--) {
+  for (let n = max_comps; n >= 2; n--) {
     // for the love of god, change the key
-    compatibilities[`${n}way`].compatibilities.forEach((compatibility) => {
-      // for the love of god, change the key
-      // if compatibility isnt added because of some assholes
-      if (
-        incompleteCompatibility[`${n}way`].includes(
-          // get index of the compatibility in the list, because im using indexof, not a for loop
-          // then check with the locations
-          compatibilities[`${n}way`].locations[
-            compatibilities[`${n}way`].compatibilities.indexOf(compatibility)
-          ],
-        )
-      ) {
-        return;
-      }
+    compatibilities[`${n}way`].forEach((compatibility) => {
       // check for compatibilities
       let useThisCompatibility = true;
       compatibility.forEach((packToCheck) => {
         if (
           !selectedPacks.raw.includes(packToCheck) ||
-          addedPacks.includes(packToCheck)
+          addedCompatibilitiesPacks.includes(packToCheck)
         ) {
           useThisCompatibility = false;
         }
       });
       if (useThisCompatibility) {
-        addedPacks.push(...compatibility); // prevents duplicate packs if somehow there are two compatibilities with the same pack (it happens more often than you think)
+        // get index in defs
+        const thisDefinedCompatibility = comp_file[`${n}way`][compatibilities[`${n}way`].indexOf(compatibility)];
+        console.log(thisDefinedCompatibility);
+        // check if you should overwrite
+        if (thisDefinedCompatibility.overwrite) {
+          // ignore adding respective packs
+          addedPacks.push(...compatibility);
+        }
+        addedCompatibilitiesPacks.push(...compatibility)
         addedPacksPriority.push(999); // compatibilities shouldnt be affected by priorities
-        const thisCompatibilitysLocation =
-          compatibilities[`${n}way`].locations[
-            compatibilities[`${n}way`].compatibilities.indexOf(compatibility)
-          ];
-        fromDir.push(`${cdir(type)}/packs/${thisCompatibilitysLocation}`);
+        fromDir.push(`${cdir(type)}/packs/${thisDefinedCompatibility.location}`);
       }
     });
   }
@@ -433,23 +438,6 @@ function listOfFromDirectories(selectedPacks, type) {
       });
     }
   });
-
-  /* get the full list of directories to add
-  let fromDirExtended = [];
-  let fromDirExtendedPriority = [];
-  fromDir.forEach((dir, index) => {
-    lsdir(dir).forEach((item) => {
-      if (fromDirExtended.indexOf(item) === undefined) {
-        fromDirExtended.push(item);
-        fromDirExtendedPriority.push(addedPacksPriority[index]);
-      } else if (
-        // holy expression
-        fromDirExtendedPriority[fromDirExtended.indexOf(item)] < addedPacksPriority[index]
-      ) {
-        fromDirExtendedPriority[fromDirExtended.indexOf(item)] = addedPacksPriority[index];
-      }
-    })
-  })*/
 
   return [fromDir, addedPacksPriority];
 }
@@ -513,45 +501,6 @@ function mainCopyFile(fromDir, priorities) {
       }
     });
   });
-
-  /*const fromListDir = lsdir(fromDir);
-  const toDir = `${cdir()}/${realManifest.header.name}`; // i dont need to specify an extended directory as it should already be set
-  const toListDir = lsdir(toDir);
-  fromListDir.forEach((item, index) => {
-    const progress = `${fromDir.split("/").slice(-2, -1)[0]} ${index + 1}/${fromListDir.length}`;
-    process.stdout.write(`\r${progress}${" ".repeat(process.stdout.columns - progress.length)}`);
-
-    // skip the root directory
-    if (item === "./") {
-      return;
-    }
-    const targetPath = path.join(toDir, item);
-    if (item.endsWith("/")) {
-      // create directory if it doesnt exist
-      if (!filesystem.existsSync(targetPath)) {
-        filesystem.mkdirSync(targetPath);
-      }
-    } else {
-      // is a file
-      if (toListDir.includes(item)) {
-        // already exists (which it shouldnt??)
-        if (item.endsWith(".json")) {
-          const toJson = loadJson(targetPath);
-          const fromJson = loadJson(path.join(fromDir, item));
-          const mergedJson = lodash.merge(toJson, fromJson);
-          dumpJson(targetPath, mergedJson);
-        } else if (item.endsWith(".lang")) {
-          const fromLang = filesystem.readFileSync(path.join(fromDir, item), "utf-8");
-          filesystem.appendFileSync(targetPath, `\n${fromLang}`);
-        }
-        else if (priorities.includes(`${fromDir.split("/").slice(-2, -1)[0]}`)) {
-          filesystem.copyFileSync(path.join(fromDir, item), targetPath);
-        }
-      } else {
-        filesystem.copyFileSync(path.join(fromDir, item), targetPath);
-      }
-    }
-  });*/
 }
 
 function loadJson(path) {
