@@ -49,7 +49,7 @@ console.log("Rebuilding...");
 console.log("Rebuilding resource packs...");
 process.chdir(`${cdir("base")}/resource-packs`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
   execSync("git add .");
 } catch (error) {
   console.error("Error during resource pack rebuild:", error.message);
@@ -58,7 +58,7 @@ try {
 console.log("Rebuilding behaviour packs...");
 process.chdir(`${cdir("base")}/behaviour-packs`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
   execSync("git add .");
 } catch (error) {
   console.error("Error during behaviour pack rebuild:", error.message);
@@ -68,7 +68,7 @@ try {
 console.log("Rebuilding crafting tweaks...");
 process.chdir(`${cdir("base")}/crafting-tweaks`);
 try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner", { stdio: "inherit" });
+  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
   execSync("git add .");
 } catch (error) {
   console.error("Error during crafting tweaks rebuild:", error.message);
@@ -78,15 +78,6 @@ try {
 process.chdir(currentdir);
 
 // Leads to times where you just cant pull even with rebase because git is just lovely
-console.log("Fixing incorrect JSON formatting")
-try {
-  execSync("pnpm exec prettier --write **/jsons/map/*.json", { stdio: "inherit" });
-  execSync("pnpm exec prettier --write **/config.json", { stdio: "inherit" });
-} catch (error) {
-  console.error("Error during formatting:", error.message);
-  process.exit(1);
-}
-
 console.log("Rebuild complete! Setting up server...");
 
 // Attempt to start https server
