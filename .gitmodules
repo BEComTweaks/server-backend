@@ -9,6 +9,3 @@
 [submodule "crafting-tweaks"]
 	path = crafting-tweaks
 	url = https://github.com/becomtweaks/crafting-tweaks.git
-[submodule "becomtweaks.github.io"]
-	path = becomtweaks.github.io
-	url = https://github.com/becomtweaks/becomtweaks.github.io
