@@ -11,9 +11,9 @@
   "license": "MIT",
   "dependencies": {
     "archiver": "^7.0.1",
-    "body-parser": "^1.20.3",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "lodash": "^4.17.21",

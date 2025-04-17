@@ -566,7 +566,7 @@ httpApp.post("*", (req, res) => {
 });
 
 function makePackRequest(req, res, type) {
-  const packName = req.headers.packname;
+  const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
   const zipPath = newGenerator(selectedPacks, packName, type, mcVersion);
