@@ -222,7 +222,7 @@ try {
       `);
     }
   });
-  httpsApp.get("*", (req, res) => {
+  httpsApp.get("/{*splat}", (req, res) => {
     res.redirect("https://becomtweaks.github.io");
     console.log("Someone accesssed the IP. Redirected them to the correct site.");
   });
@@ -553,13 +553,13 @@ httpApp.post("/update", (req, res) => {
   );
 });
 
-httpApp.get("*", (req, res) => {
+httpApp.get("/{*splat}", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
 });
 
-httpApp.post("*", (req, res) => {
+httpApp.post("/{*splat}", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
