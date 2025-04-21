@@ -24,4 +24,4 @@ if __name__ == "__main__":
 
     output_zip = folder_to_zip.rstrip(os.path.sep) + ".zip"
     zip_folder(folder_to_zip, output_zip)
-    print(f"Folder [cyan]{folder_to_zip if str(folder_to_zip)[-1] != "\\" else str(folder_to_zip)[:-1]}[/cyan] has been zipped into [green]{output_zip}[/].")
+    print(f"Folder [cyan]{folder_to_zip.rstrip(os.path.sep)}[/cyan] has been zipped into [green]{output_zip}[/].")
