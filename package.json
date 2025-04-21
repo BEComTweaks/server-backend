@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js"
+    "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js",
+    "dev-server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js --no-rebuild"
   },
   "author": "BEComTweaks",
   "license": "MIT",

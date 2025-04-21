@@ -44,41 +44,42 @@ function cdir(type) {
   else return currentdir + "/makePacks";
 }
 
-// Rebuild everything when you start the server
-console.log("Rebuilding...");
-console.log("Rebuilding resource packs...");
-process.chdir(`${cdir("base")}/resource-packs`);
-try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
-  execSync("git add .");
-} catch (error) {
-  console.error("Error during resource pack rebuild:", error.message);
-  process.exit(1);
-}
-console.log("Rebuilding behaviour packs...");
-process.chdir(`${cdir("base")}/behaviour-packs`);
-try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
-  execSync("git add .");
-} catch (error) {
-  console.error("Error during behaviour pack rebuild:", error.message);
-  process.exit(1);
-}
+const args = process.argv;
 
-console.log("Rebuilding crafting tweaks...");
-process.chdir(`${cdir("base")}/crafting-tweaks`);
-try {
-  execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
-  execSync("git add .");
-} catch (error) {
-  console.error("Error during crafting tweaks rebuild:", error.message);
-  process.exit(1);
+if (!args.includes('--no-rebuild')) {
+  /* Rebuild everything when you start the server */
+  console.log("Rebuilding...");
+  console.log("Rebuilding resource packs...");
+  process.chdir(`${cdir("base")}/resource-packs`);
+  try {
+    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync("git add .");
+  } catch (error) {
+    console.error("Error during resource pack rebuild:", error.message);
+    process.exit(1);
+  }
+  console.log("Rebuilding behaviour packs...");
+  process.chdir(`${cdir("base")}/behaviour-packs`);
+  try {
+    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync("git add .");
+  } catch (error) {
+    console.error("Error during behaviour pack rebuild:", error.message);
+    process.exit(1);
+  }
+
+  console.log("Rebuilding crafting tweaks...");
+  process.chdir(`${cdir("base")}/crafting-tweaks`);
+  try {
+    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync("git add .");
+  } catch (error) {
+    console.error("Error during crafting tweaks rebuild:", error.message);
+    process.exit(1);
+  }
+  process.chdir(currentdir);
+  console.log("Rebuild complete! Setting up server...");
 }
-
-process.chdir(currentdir);
-
-// Leads to times where you just cant pull even with rebase because git is just lovely
-console.log("Rebuild complete! Setting up server...");
 
 // Attempt to start https server
 try {
@@ -238,6 +239,16 @@ httpApp.use(bodyParser.json());
 
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 
+function zipUp(directory) {
+  execSync(
+    `python ${cdir("base")}/zip.py ${directory}`,
+    { stdio: "inherit" },
+  );
+  if (directory.endsWith("\\")) {
+    directory = directory.slice(0, -1);
+  }
+}
+
 function lsdir(directory) {
   let folderList = [];
 
@@ -266,6 +277,7 @@ let realManifest;
 function newGenerator(selectedPacks, packName, type, mcVersion) {
   if (type == "behaviour") {
     defaultFileGenerator(selectedPacks, packName, type, mcVersion, "bp");
+    defaultFileGenerator(selectedPacks, packName, type, mcVersion, "rp");
   } else {
     defaultFileGenerator(selectedPacks, packName, type, mcVersion);
   }
@@ -276,22 +288,61 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
   );
-  mainCopyFile(fromDir, priorities);
-  console.log(`Copied necessary files`);
+  mainCopyFile(fromDir, priorities, type == "behaviour");
+  console.log(`Copied tweaks`);
   console.log(`${realManifest.header.name}.zip 1/2`);
-  let command;
-  if (process.platform === "win32") {
-    command = `cd ${cdir()} && powershell Compress-Archive -Path "${realManifest.header.name}" -DestinationPath "${realManifest.header.name}.zip"`;
-  } else {
-    command = `cd "${cdir()}";zip -r "${realManifest.header.name}.zip" "${realManifest.header.name}"`;
-  }
-  execSync(command);
   let extension;
   if (type == "behaviour") {
-    extension = "mcaddon";
+    // check if pack needs rp
+    if (lsdir(`${cdir()}/${realManifest.header.name}/rp`).length > 3) {
+      // requires rp
+      extension = "mcaddon";
+      // 'link' as dependencies
+      const bpManifest = loadJson(
+        `${cdir()}/${packName}/bp/manifest.json`,
+      );
+      const rpManifest = loadJson(
+        `${cdir()}/${packName}/rp/manifest.json`,
+      );
+      if (bpManifest.dependencies === undefined) {
+        bpManifest.dependencies = [];
+      }
+      if (rpManifest.dependencies === undefined) {
+        rpManifest.dependencies = [];
+      }
+      // add the dependencies to the manifest
+      bpManifest.dependencies.push({
+        uuid: rpManifest.header.uuid,
+        version: [1, 0, 0],
+      })
+      rpManifest.dependencies.push({
+        uuid: bpManifest.header.uuid,
+        version: [1, 0, 0],
+      });
+      dumpJson(
+        `${cdir()}/${packName}/bp/manifest.json`,
+        bpManifest,
+      );
+      dumpJson(
+        `${cdir()}/${packName}/rp/manifest.json`,
+        rpManifest,
+      );
+      console.log(bpManifest.dependencies);
+      console.log(rpManifest.dependencies);
+    } else {
+      // does not require rp
+      extension = "mcpack";
+      filesystem.rmSync(
+        `${cdir()}/${realManifest.header.name}/rp/`,
+        { recursive: true },
+      );
+    }
   } else {
     extension = "mcpack";
   }
+  zipUp(
+    `${cdir()}/${realManifest.header.name}`,
+  );
   console.log(`${realManifest.header.name}.${extension} 2/2`);
   filesystem.renameSync(
     `${path.join(cdir(), realManifest.header.name)}.zip`,
@@ -316,7 +367,13 @@ function defaultFileGenerator(
   // generate the manifest
   const regex =
     /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
-  templateManifest = loadJson(`${cdir(type)}/jsons/manifest.json`);
+  // check if manifest exists in pack alr
+  if (extra_dir !== undefined) {
+    // this means that pack is bp
+    templateManifest = loadJson(`${cdir(type)}/jsons/${extra_dir}manifest.json`);
+  } else {
+    templateManifest = loadJson(`${cdir(type)}/jsons/manifest.json`);
+  }
   templateManifest.header.name = packName;
   let description = "";
   for (let i in selectedPacks) {
@@ -349,6 +406,7 @@ function defaultFileGenerator(
   if (!filesystem.existsSync(packDir)) {
     filesystem.mkdirSync(packDir, { recursive: true });
   }
+  //templateManifest.modules[0].description = "The most ass filler description ever";
   dumpJson(`${packDir}/manifest.json`, templateManifest);
   realManifest = templateManifest;
 
@@ -433,13 +491,19 @@ function listOfFromDirectories(selectedPacks, type) {
   return [fromDir, addedPacksPriority];
 }
 
-function mainCopyFile(fromDir, priorities) {
-  let addedFiles = [];
-  let addedFilesPriority = [];
+function mainCopyFile(fromDir, priorities, isbehaviour) {
+  var addedFiles, addedFilesPriority;
+  if (isbehaviour) {
+    addedFiles = ["bp/manifest.json", "rp/manifest.json", "bp/pack_icon.png", "rp/pack_icon.png"];
+    addedFilesPriority = [1000, 1000, 1000, 1000];
+  } else {
+    addedFiles = ["manifest.json", "pack_icon.png"];
+    addedFilesPriority = [1000, 1000];
+  }
   fromDir.forEach((dir, dirIndexed) => {
     const fromDirRecursive = lsdir(dir);
     fromDirRecursive.forEach((item, itemIndexed) => {
-      const progress = `${dir.split("/").slice(-2)[0]} ${itemIndexed + 1}/${fromDirRecursive.length}`;
+      const progress = `${item}`;
       process.stdout.write(
         `\r${progress}${" ".repeat(process.stdout.columns - progress.length)}`,
       );
@@ -456,9 +520,37 @@ function mainCopyFile(fromDir, priorities) {
         }
       } else {
         // is a file
-        if (addedFiles.includes(item)) {
+        if (item.endsWith("manifest.json")) {
+          const alreadyExistingJson = loadJson(targetPath);
+          const newJson = loadJson(path.join(dir, item));
+          // only need modules, dependencies and metadata
+          try {
+            newJson.modules.forEach((module) => {
+              alreadyExistingJson.modules.push(module);
+            })
+          } catch (error) {
+            console.log("No modules found.")
+          }
+          try {
+            if (!alreadyExistingJson.hasOwnProperty("dependencies")) {
+              alreadyExistingJson.dependencies = []
+            }
+            newJson.dependencies.forEach((dependency) => {
+              alreadyExistingJson.dependencies.push(dependency);
+            })
+          } catch (error) {
+            console.log(`No dependencies found. ${error}`);
+          }
+          newJson.metadata.authors.forEach((author) => {
+            if (!alreadyExistingJson.metadata.authors.includes(author)) {
+              alreadyExistingJson.metadata.authors.push(author);
+            }
+          })
+          dumpJson(targetPath, alreadyExistingJson);
+        } else if (addedFiles.includes(item)) {
           // already exists
           if (item.endsWith(".json")) {
+            // first check if manifest.json
             const alreadyExistingJson = loadJson(targetPath);
             const newJson = loadJson(path.join(dir, item));
             const mergedJson = lodash.merge(newJson, alreadyExistingJson);
@@ -504,7 +596,7 @@ function loadJson(path) {
 }
 
 function dumpJson(path, dictionary) {
-  const data = JSON.stringify(dictionary);
+  const data = JSON.stringify(dictionary, space=4);
   filesystem.writeFileSync(path, data, "utf-8");
 }
 

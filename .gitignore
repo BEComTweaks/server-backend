@@ -5,6 +5,7 @@ private.key
 
 # ENV
 node_modules
+.venv
 venv
 
 # Pack folder
