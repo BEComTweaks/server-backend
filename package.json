@@ -1,10 +1,9 @@
 {
   "name": "becomtweaks-server-backend",
-  "version": "1.0.0",
-  "description": "",
+  "version": "3.0.0",
+  "description": "The lovely BEComTweaks server backend",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js",
     "dev-server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js --no-rebuild"
   },
