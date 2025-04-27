@@ -1,7 +1,10 @@
 {
     "ignore": [
         "./makePacks/*",
-        "./downloadTotals**"
+        "./downloadTotals**",
+        "behaviour-packs",
+        "resource-packs",
+        "crafting-tweaks"
     ],
-    "delay":2500
+    "delay": 2500
 }

@@ -1,10 +1,21 @@
+# HTTPS
 ca_bundle.crt
 certificate.crt
 private.key
+
+# ENV
 node_modules
+.venv
+venv
+
+# Pack folder
 makePacks
+
+# logs
 downloadTotalscrafting.json
 downloadTotalsresource.json
 downloadTotalsbehaviour.json
+
+# secrets
 secretstuff.json
-csr.pem
+__pycache__

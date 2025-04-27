@@ -1,23 +1,28 @@
 {
-  "name": "bedrock-tweaks-base-server",
-  "version": "1.0.0",
-  "description": "",
+  "name": "becomtweaks-server-backend",
+  "version": "3.0.0",
+  "description": "The lovely BEComTweaks server backend",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js",
+    "dev-server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js --no-rebuild"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "BEComTweaks",
+  "license": "MIT",
   "dependencies": {
     "archiver": "^7.0.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "fs": "^0.0.1-security",
+    "fs": "0.0.1-security",
     "https": "^1.0.0",
     "lodash": "^4.17.21",
     "nodemon": "^3.1.9",
     "path": "^0.12.7",
+    "prettier": "^3.5.3",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
