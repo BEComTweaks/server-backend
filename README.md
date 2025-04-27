@@ -8,26 +8,4 @@
 
 Server Backend for the website
 
-To clone
-```cmd
-git clone https://github.com/BEComTweaks/server-backend --recursive
-```
-<sub> Recursive is neccessary due to submodules</sub>
-
----
-
-Install Modules
-
-```sh
-npm install
-```
----
-
-Start server
-
-```sh
-npx nodemon server.js
-```
-<sub> On linux and mac run this command with sudo or a program like authbind to allow usage of ports below 1024</sub>
-
-Then just go to the local website and download your packs! It will use localhost instead of the actual server ip
+Refer to https://becomtweaks.gitbook.io/docs/getting-started to get started or https://becomtweaks.gitbook.io/docs/server/api for the API docs
