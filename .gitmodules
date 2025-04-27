@@ -1,11 +1,9 @@
 [submodule "resource-packs"]
 	path = resource-packs
 	url = https://github.com/BEComTweaks/resource-packs.git
-	branch = overhaul-3.0
 [submodule "behaviour-packs"]
 	path = behaviour-packs
 	url = https://github.com/BEComTweaks/behaviour-packs.git
-	branch = overhaul-3.0
 [submodule "crafting-tweaks"]
 	path = crafting-tweaks
 	url = https://github.com/BEComTweaks/crafting-tweaks.git
