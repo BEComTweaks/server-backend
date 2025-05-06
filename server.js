@@ -34,7 +34,6 @@ const lodash = require("lodash");
 const httpsPort = 443;
 const httpPort = 80;
 
-
 let currentdir = process.cwd();
 function cdir(type) {
   if (type == "resource") return currentdir + "/resource-packs";
@@ -46,13 +45,16 @@ function cdir(type) {
 
 const args = process.argv;
 
-if (!args.includes('--no-rebuild')) {
+if (!args.includes("--no-rebuild")) {
   /* Rebuild everything when you start the server */
   console.log("Rebuilding...");
   console.log("Rebuilding resource packs...");
   process.chdir(`${cdir("base")}/resource-packs`);
   try {
-    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync(
+      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      { stdio: "inherit" },
+    );
     execSync("git add .");
   } catch (error) {
     console.error("Error during resource pack rebuild:", error.message);
@@ -61,7 +63,10 @@ if (!args.includes('--no-rebuild')) {
   console.log("Rebuilding behaviour packs...");
   process.chdir(`${cdir("base")}/behaviour-packs`);
   try {
-    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync(
+      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      { stdio: "inherit" },
+    );
     execSync("git add .");
   } catch (error) {
     console.error("Error during behaviour pack rebuild:", error.message);
@@ -71,7 +76,10 @@ if (!args.includes('--no-rebuild')) {
   console.log("Rebuilding crafting tweaks...");
   process.chdir(`${cdir("base")}/crafting-tweaks`);
   try {
-    execSync("python pys/pre_commit.py --no-stash --build server --no-spinner --format", { stdio: "inherit" });
+    execSync(
+      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      { stdio: "inherit" },
+    );
     execSync("git add .");
   } catch (error) {
     console.error("Error during crafting tweaks rebuild:", error.message);
@@ -223,9 +231,14 @@ try {
       `);
     }
   });
+  httpsApp.get("/ping", (req, res) => {
+    res.send("Pong!");
+  });
   httpsApp.get("/{*splat}", (req, res) => {
     res.redirect("https://becomtweaks.github.io");
-    console.log("Someone accesssed the IP. Redirected them to the correct site.");
+    console.log(
+      "Someone accesssed the IP. Redirected them to the correct site.",
+    );
   });
 } catch (e) {
   console.log(`HTTPS error: ${e}`);
@@ -240,10 +253,7 @@ httpApp.use(bodyParser.json());
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 
 function zipUp(directory) {
-  execSync(
-    `python ${cdir("base")}/zip.py ${directory}`,
-    { stdio: "inherit" },
-  );
+  execSync(`python ${cdir("base")}/zip.py ${directory}`, { stdio: "inherit" });
   if (directory.endsWith("\\")) {
     directory = directory.slice(0, -1);
   }
@@ -298,12 +308,8 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
       // requires rp
       extension = "mcaddon";
       // 'link' as dependencies
-      const bpManifest = loadJson(
-        `${cdir()}/${packName}/bp/manifest.json`,
-      );
-      const rpManifest = loadJson(
-        `${cdir()}/${packName}/rp/manifest.json`,
-      );
+      const bpManifest = loadJson(`${cdir()}/${packName}/bp/manifest.json`);
+      const rpManifest = loadJson(`${cdir()}/${packName}/rp/manifest.json`);
       if (bpManifest.dependencies === undefined) {
         bpManifest.dependencies = [];
       }
@@ -314,35 +320,26 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
       bpManifest.dependencies.push({
         uuid: rpManifest.header.uuid,
         version: [1, 0, 0],
-      })
+      });
       rpManifest.dependencies.push({
         uuid: bpManifest.header.uuid,
         version: [1, 0, 0],
       });
-      dumpJson(
-        `${cdir()}/${packName}/bp/manifest.json`,
-        bpManifest,
-      );
-      dumpJson(
-        `${cdir()}/${packName}/rp/manifest.json`,
-        rpManifest,
-      );
+      dumpJson(`${cdir()}/${packName}/bp/manifest.json`, bpManifest);
+      dumpJson(`${cdir()}/${packName}/rp/manifest.json`, rpManifest);
       console.log(bpManifest.dependencies);
       console.log(rpManifest.dependencies);
     } else {
       // does not require rp
       extension = "mcpack";
-      filesystem.rmSync(
-        `${cdir()}/${realManifest.header.name}/rp/`,
-        { recursive: true },
-      );
+      filesystem.rmSync(`${cdir()}/${realManifest.header.name}/rp/`, {
+        recursive: true,
+      });
     }
   } else {
     extension = "mcpack";
   }
-  zipUp(
-    `${cdir()}/${realManifest.header.name}`,
-  );
+  zipUp(`${cdir()}/${realManifest.header.name}`);
   console.log(`${realManifest.header.name}.${extension} 2/2`);
   filesystem.renameSync(
     `${path.join(cdir(), realManifest.header.name)}.zip`,
@@ -370,7 +367,9 @@ function defaultFileGenerator(
   // check if manifest exists in pack alr
   if (extra_dir !== undefined) {
     // this means that pack is bp
-    templateManifest = loadJson(`${cdir(type)}/jsons/${extra_dir}manifest.json`);
+    templateManifest = loadJson(
+      `${cdir(type)}/jsons/${extra_dir}manifest.json`,
+    );
   } else {
     templateManifest = loadJson(`${cdir(type)}/jsons/manifest.json`);
   }
@@ -448,16 +447,21 @@ function listOfFromDirectories(selectedPacks, type) {
       });
       if (useThisCompatibility) {
         // get index in defs
-        const thisDefinedCompatibility = comp_file[`${n}way`][compatibilities[`${n}way`].indexOf(compatibility)];
+        const thisDefinedCompatibility =
+          comp_file[`${n}way`][
+            compatibilities[`${n}way`].indexOf(compatibility)
+          ];
         console.log(thisDefinedCompatibility);
         // check if you should overwrite
         if (thisDefinedCompatibility.overwrite) {
           // ignore adding respective packs
           addedPacks.push(...compatibility);
         }
-        addedCompatibilitiesPacks.push(...compatibility)
+        addedCompatibilitiesPacks.push(...compatibility);
         addedPacksPriority.push(999); // compatibilities shouldnt be affected by priorities
-        fromDir.push(`${cdir(type)}/packs/${thisDefinedCompatibility.location}`);
+        fromDir.push(
+          `${cdir(type)}/packs/${thisDefinedCompatibility.location}`,
+        );
       }
     });
   }
@@ -494,7 +498,12 @@ function listOfFromDirectories(selectedPacks, type) {
 function mainCopyFile(fromDir, priorities, isbehaviour) {
   var addedFiles, addedFilesPriority;
   if (isbehaviour) {
-    addedFiles = ["bp/manifest.json", "rp/manifest.json", "bp/pack_icon.png", "rp/pack_icon.png"];
+    addedFiles = [
+      "bp/manifest.json",
+      "rp/manifest.json",
+      "bp/pack_icon.png",
+      "rp/pack_icon.png",
+    ];
     addedFilesPriority = [1000, 1000, 1000, 1000];
   } else {
     addedFiles = ["manifest.json", "pack_icon.png"];
@@ -527,17 +536,17 @@ function mainCopyFile(fromDir, priorities, isbehaviour) {
           try {
             newJson.modules.forEach((module) => {
               alreadyExistingJson.modules.push(module);
-            })
+            });
           } catch (error) {
-            console.log("No modules found.")
+            console.log("No modules found.");
           }
           try {
             if (!alreadyExistingJson.hasOwnProperty("dependencies")) {
-              alreadyExistingJson.dependencies = []
+              alreadyExistingJson.dependencies = [];
             }
             newJson.dependencies.forEach((dependency) => {
               alreadyExistingJson.dependencies.push(dependency);
-            })
+            });
           } catch (error) {
             console.log(`No dependencies found. ${error}`);
           }
@@ -545,7 +554,7 @@ function mainCopyFile(fromDir, priorities, isbehaviour) {
             if (!alreadyExistingJson.metadata.authors.includes(author)) {
               alreadyExistingJson.metadata.authors.push(author);
             }
-          })
+          });
           dumpJson(targetPath, alreadyExistingJson);
         } else if (addedFiles.includes(item)) {
           // already exists
@@ -596,7 +605,7 @@ function loadJson(path) {
 }
 
 function dumpJson(path, dictionary) {
-  const data = JSON.stringify(dictionary, space=4);
+  const data = JSON.stringify(dictionary, (space = 4));
   filesystem.writeFileSync(path, data, "utf-8");
 }
 
@@ -645,13 +654,11 @@ httpApp.post("/update", (req, res) => {
   );
 });
 
-httpApp.get("/{*splat}", (req, res) => {
-  res.send(
-    "There's nothing here, you should probably enter into the submodules to find the website.",
-  );
+httpApp.get("/ping", (req, res) => {
+  res.send("pong?");
 });
 
-httpApp.post("/{*splat}", (req, res) => {
+httpApp.get("/{*splat}", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
