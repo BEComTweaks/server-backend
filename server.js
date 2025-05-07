@@ -293,7 +293,7 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
   }
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
-  console.log([fromDir, priorities]);
+  if (!args.includes('--dev')) console.log([fromDir, priorities]);
   console.log(`Obtained list of directories and priorities`);
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
@@ -327,8 +327,8 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
       });
       dumpJson(`${cdir()}/${packName}/bp/manifest.json`, bpManifest);
       dumpJson(`${cdir()}/${packName}/rp/manifest.json`, rpManifest);
-      console.log(bpManifest.dependencies);
-      console.log(rpManifest.dependencies);
+      if (!args.includes('--dev')) console.log(bpManifest.dependencies);
+      if (!args.includes('--dev')) console.log(rpManifest.dependencies);
     } else {
       // does not require rp
       extension = "mcpack";
@@ -449,7 +449,7 @@ function listOfFromDirectories(selectedPacks, type) {
         // get index in defs
         const thisDefinedCompatibility =
           comp_file[`${n}way`][
-            compatibilities[`${n}way`].indexOf(compatibility)
+          compatibilities[`${n}way`].indexOf(compatibility)
           ];
         console.log(thisDefinedCompatibility);
         // check if you should overwrite

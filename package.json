@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js",
-    "dev-server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js --no-rebuild"
+    "dev-server": "cross-env npm_lifecycle_script=nodemon pnpm exec nodemon server.js --no-rebuild --dev"
   },
   "author": "BEComTweaks",
   "license": "MIT",
