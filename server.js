@@ -32,8 +32,10 @@ const cors = require("cors");
 const https = require("https");
 const lodash = require("lodash");
 const http = require("http");
-const httpsPort = 443;
-const httpPort = 80;
+let httpsPortIndex = 0;
+const acceptableHttpsPorts = [443, 8443, 8444];
+let httpPortIndex = 0;
+const acceptableHttpPorts = [80, 8080, 8000];
 
 let currentdir = process.cwd();
 function cdir(type) {
@@ -102,14 +104,39 @@ try {
     credentials = { key: privateKey, cert: certificate };
   }
   const httpsApp = express();
-  const httpsServer = https.createServer(credentials, httpsApp);
   if (process.env.npm_lifecycle_script !== "nodemon") {
     console.warn("Use nodemon to run the server.");
     console.warn("Command: `npx nodemon server.js`");
-    process.exit(0);
+    // process.exit(0);
   }
-  httpsServer.listen(httpsPort, () => {
-    console.log(`Https server is running at https://localhost:${httpsPort}`);
+  const httpsServer = https.createServer(httpsApp);
+  httpsServer.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+      console.log(`Port ${e.port} is already in use.`);
+    } else {
+      console.log(`Error starting HTTPS server:`, e.message);
+    }
+
+    httpsPortIndex++;
+    if (httpsPortIndex < acceptableHttpsPorts.length) {
+      const nextPort = acceptableHttpsPorts[httpsPortIndex];
+      console.log(`Trying next port: ${nextPort}`);
+      startHttpsServer(nextPort);
+    } else {
+      console.error("No more acceptable HTTPS ports available.");
+      process.exit(1);
+    }
+  });
+
+  startHttpsServer(acceptableHttpsPorts[0]);
+
+  function startHttpsServer(port) {
+    console.log(`Starting HTTPS server on port ${port}...`);
+    httpsServer.listen(port);
+  }
+  httpsServer.on('listening', () => {
+    const port = httpsServer.address().port;
+    console.log(`Https server is running at https://localhost:${port}`);
   });
   httpsApp.use(cors());
   httpsApp.use(bodyParser.json());
@@ -617,9 +644,34 @@ if (process.env.npm_lifecycle_script !== "nodemon") {
   console.warn("Command: `npx nodemon server.js`");
 }
 
-const httpServer=http.createServer(httpApp);
-httpServer.listen(httpPort, () => {
-  console.log(`Http server is running at http://localhost:${httpPort}`);
+const httpServer = http.createServer(httpApp);
+httpServer.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.log(`Port ${e.port} is already in use.`);
+  } else {
+    console.log(`Error starting HTTP server:`, e.message);
+  }
+
+  httpPortIndex++;
+  if (httpPortIndex < acceptableHttpPorts.length) {
+    const nextPort = acceptableHttpPorts[httpPortIndex];
+    console.log(`Trying next port: ${nextPort}`);
+    startHttpServer(nextPort);
+  } else {
+    console.error("No more acceptable HTTP ports available.");
+    process.exit(1);
+  }
+});
+
+startHttpServer(acceptableHttpPorts[0]);
+
+function startHttpServer(port) {
+  console.log(`Starting HTTP server on port ${port}...`);
+  httpServer.listen(port);
+}
+httpServer.on('listening', () => {
+  const port = httpServer.address().port;
+  console.log(`Http server is running at http://localhost:${port}`);
 });
 
 httpApp.post("/exportResourcePack", (req, res) => {
