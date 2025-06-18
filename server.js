@@ -109,7 +109,7 @@ try {
     console.warn("Command: `npx nodemon server.js`");
     // process.exit(0);
   }
-  const httpsServer = https.createServer(httpsApp);
+  const httpsServer = https.createServer(credentials, httpsApp);
   httpsServer.on('error', (e) => {
     if (e.code === 'EADDRINUSE') {
       console.log(`Port ${e.port} is already in use.`);
