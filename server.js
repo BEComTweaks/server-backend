@@ -31,6 +31,7 @@ const { v4: uuidv4 } = require("uuid");
 const cors = require("cors");
 const https = require("https");
 const lodash = require("lodash");
+const http = require("http");
 const httpsPort = 443;
 const httpPort = 80;
 
@@ -616,7 +617,8 @@ if (process.env.npm_lifecycle_script !== "nodemon") {
   console.warn("Command: `npx nodemon server.js`");
 }
 
-httpApp.listen(httpPort, () => {
+const httpServer=http.createServer(httpApp);
+httpServer.listen(httpPort, () => {
   console.log(`Http server is running at http://localhost:${httpPort}`);
 });
 
