@@ -80,7 +80,7 @@ if (!args.includes("--no-rebuild")) {
 
 if (process.env.npm_lifecycle_script !== "nodemon") {
   console.warn(
-    "You are recommended to use nodemon when developing on the server.",
+    "It is recommended to use nodemon when developing or running the server.",
   );
   console.warn("Command: `npx nodemon server.js`");
 }
