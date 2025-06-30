@@ -11,11 +11,11 @@ function cdir(type) {
   else if (type == "base") return currentdir;
   else return currentdir + "/makePacks";
 }
-function makePackRequest(req, res, type,args) {
+function makePackRequest(req, res, type) {
   const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
-  const zipPath = newGenerator(selectedPacks, packName, type, mcVersion,args);
+  const zipPath = newGenerator(selectedPacks, packName, type, mcVersion);
 
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
     if (err) {
@@ -84,7 +84,7 @@ function lsdir(directory) {
 
 let realManifest;
 
-function newGenerator(selectedPacks, packName, type, mcVersion,args) {
+function newGenerator(selectedPacks, packName, type, mcVersion) {
   if (type == "behaviour") {
     defaultFileGenerator(selectedPacks, packName, type, mcVersion, "bp");
     defaultFileGenerator(selectedPacks, packName, type, mcVersion, "rp");
@@ -93,7 +93,7 @@ function newGenerator(selectedPacks, packName, type, mcVersion,args) {
   }
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
-  if (args.includes('--dev')) console.log([fromDir, priorities]);
+  if (process.argv.includes('--dev')) console.log([fromDir, priorities]);
   console.log(`Obtained list of directories and priorities`);
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
@@ -127,8 +127,8 @@ function newGenerator(selectedPacks, packName, type, mcVersion,args) {
       });
       dumpJson(`${cdir()}/${packName}/bp/manifest.json`, bpManifest);
       dumpJson(`${cdir()}/${packName}/rp/manifest.json`, rpManifest);
-      if (args.includes('--dev')) console.log(bpManifest.dependencies);
-      if (args.includes('--dev')) console.log(rpManifest.dependencies);
+      if (process.argv.includes('--dev')) console.log(bpManifest.dependencies);
+      if (process.argv.includes('--dev')) console.log(rpManifest.dependencies);
     } else {
       // does not require rp
       extension = "mcpack";

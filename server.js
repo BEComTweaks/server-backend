@@ -32,9 +32,7 @@ const currentdir = process.cwd();
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 const { v4: uuidv4 } = require("uuid");
 
-const args = process.argv;
-
-if (!args.includes("--no-rebuild")) {
+if (!process.argv.includes("--no-rebuild")) {
   /* Rebuild everything when you start the server */
   console.log("Rebuilding...");
   console.log("Rebuilding resource packs...");
@@ -86,58 +84,55 @@ if (process.env.npm_lifecycle_script !== "nodemon") {
 }
 
 httpApp.post("/exportResourcePack", (req, res) => {
-  makePackRequest(req, res, "resource", args);
+  makePackRequest(req, res, "resource");
 });
+
 httpApp.post("/exportBehaviourPack", (req, res) => {
-  makePackRequest(req, res, "behaviour", args);
+  makePackRequest(req, res, "behaviour");
 });
+
 httpApp.post("/exportCraftingTweak", (req, res) => {
-  makePackRequest(req, res, "crafting", args);
+  makePackRequest(req, res, "crafting");
 });
+
 httpApp.get("/downloadTotals", (req, res) => {
-  const type = req.query.type;
-  if (!type) {
-    res.send("You need a specified query. The only query available is `type`.");
-  } else {
-    if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
-      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
-    } else {
-      res.send(
-        `There is no such file called downloadTotals${type}.json at the root directory`,
-      );
-    }
-  }
+    downloadTotals(req, res);
 });
+
 httpApp.post("/update", (req, res) => {
   res.send("Lazy ass, just do it yourself");
   console.log(
     "Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?",
   );
 });
+
 httpApp.get("/ping", (req, res) => {
   res.send("pong?");
 });
+
 httpApp.get("/{*splat}", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
 });
+
 if (httpsApp) {
   httpsApp.post("/exportResourcePack", (req, res) => {
-    makePackRequest(req, res, "resource", args);
+    makePackRequest(req, res, "resource");
   });
+
   httpsApp.post("/exportBehaviourPack", (req, res) => {
-    makePackRequest(req, res, "behaviour", args);
+    makePackRequest(req, res, "behaviour");
   });
+
   httpsApp.post("/exportCraftingTweak", (req, res) => {
-    makePackRequest(req, res, "crafting", args);
+    makePackRequest(req, res, "crafting");
   });
+
   httpsApp.get("/downloadTotals", (req, res) => {
-    const type = req.query.type;
-    if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
-      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
-    }
+    downloadTotals(req, res);
   });
+
   httpsApp.post("/update", (req, res) => {
     const key = req.query.key;
     if (!key) {
@@ -189,6 +184,7 @@ if (httpsApp) {
       res.send("Wrong key!");
     }
   });
+
   httpsApp.get("/checkOnline", (req, res) => {
     try {
       const gitLogOutput = execSync("git log -1 --format=short").toString();
@@ -241,13 +237,30 @@ if (httpsApp) {
       `);
     }
   });
+
   httpsApp.get("/ping", (req, res) => {
     res.send("Pong!");
   });
+
   httpsApp.get("/{*splat}", (req, res) => {
     res.redirect("https://becomtweaks.github.io");
     console.log(
       "Someone accesssed the IP. Redirected them to the correct site.",
     );
   });
+}
+function downloadTotals(req,res){
+    const type = req.query.type;
+    if (!type) {
+      res.send("You need a specified query. The only query available is `type`.");
+    } else {
+      if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
+        res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
+      } else {
+        res.send(
+          `There is no such file called downloadTotals${type}.json at the root directory`,
+        );
+      }
+    }
+
 }
