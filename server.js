@@ -23,21 +23,14 @@ function checkAndInstallPackages(packages) {
 }
 
 checkAndInstallPackages(requiredPackages);
-const express = require("express");
-const bodyParser = require("body-parser");
 const filesystem = require("fs");
 const path = require("path");
-const { v4: uuidv4 } = require("uuid");
-const cors = require("cors");
-const https = require("https");
-const http = require("http");
-let httpsPortIndex = 0;
-const acceptableHttpsPorts = [443, 8443, 8444];
-let httpPortIndex = 0;
-const acceptableHttpPorts = [80, 8080, 8000];
 const { makePackRequest, cdir } = require('./packCreation')
-
-let currentdir = process.cwd();
+const httpsApp = require('./https-server').initHttpsServer()
+const httpApp = require('./http-server').initHttpServer()
+const currentdir = process.cwd();
+const secretStuffPath = path.join(currentdir, "secretstuff.json");
+const { v4: uuidv4 } = require("uuid");
 
 const args = process.argv;
 
@@ -85,55 +78,51 @@ if (!args.includes("--no-rebuild")) {
   console.log("Rebuild complete! Setting up server...");
 }
 
-// Attempt to start https server
-try {
-  const privateKey = filesystem.readFileSync("private.key", "utf8");
-  const certificate = filesystem.readFileSync("certificate.crt", "utf8");
-  let credentials;
-  if (filesystem.existsSync("ca_bundle.crt")) {
-    const ca = filesystem.readFileSync("ca_bundle.crt", "utf8");
-    credentials = { key: privateKey, cert: certificate, ca: ca };
+if (process.env.npm_lifecycle_script !== "nodemon") {
+  console.warn(
+    "You are recommended to use nodemon when developing on the server.",
+  );
+  console.warn("Command: `npx nodemon server.js`");
+}
+
+httpApp.post("/exportResourcePack", (req, res) => {
+  makePackRequest(req, res, "resource", args);
+});
+httpApp.post("/exportBehaviourPack", (req, res) => {
+  makePackRequest(req, res, "behaviour", args);
+});
+httpApp.post("/exportCraftingTweak", (req, res) => {
+  makePackRequest(req, res, "crafting", args);
+});
+httpApp.get("/downloadTotals", (req, res) => {
+  const type = req.query.type;
+  if (!type) {
+    res.send("You need a specified query. The only query available is `type`.");
   } else {
-    credentials = { key: privateKey, cert: certificate };
-  }
-  const httpsApp = express();
-  if (process.env.npm_lifecycle_script !== "nodemon") {
-    console.warn("Use nodemon to run the server.");
-    console.warn("Command: `npx nodemon server.js`");
-    // process.exit(0);
-  }
-  const httpsServer = https.createServer(credentials, httpsApp);
-  httpsServer.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') {
-      console.log(`Port ${e.port} is already in use.`);
+    if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
+      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
     } else {
-      console.log(`Error starting HTTPS server:`, e.message);
+      res.send(
+        `There is no such file called downloadTotals${type}.json at the root directory`,
+      );
     }
-
-    httpsPortIndex++;
-    if (httpsPortIndex < acceptableHttpsPorts.length) {
-      const nextPort = acceptableHttpsPorts[httpsPortIndex];
-      console.log(`Trying next port: ${nextPort}`);
-      startHttpsServer(nextPort);
-    } else {
-      console.error("No more acceptable HTTPS ports available.");
-      process.exit(1);
-    }
-  });
-
-  startHttpsServer(acceptableHttpsPorts[0]);
-
-  function startHttpsServer(port) {
-    console.log(`Starting HTTPS server on port ${port}...`);
-    httpsServer.listen(port);
   }
-  httpsServer.on('listening', () => {
-    const port = httpsServer.address().port;
-    console.log(`Https server is running at https://localhost:${port}`);
-  });
-  httpsApp.use(cors());
-  httpsApp.use(bodyParser.json());
-
+});
+httpApp.post("/update", (req, res) => {
+  res.send("Lazy ass, just do it yourself");
+  console.log(
+    "Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?",
+  );
+});
+httpApp.get("/ping", (req, res) => {
+  res.send("pong?");
+});
+httpApp.get("/{*splat}", (req, res) => {
+  res.send(
+    "There's nothing here, you should probably enter into the submodules to find the website.",
+  );
+});
+if (httpsApp) {
   httpsApp.post("/exportResourcePack", (req, res) => {
     makePackRequest(req, res, "resource", args);
   });
@@ -261,96 +250,4 @@ try {
       "Someone accesssed the IP. Redirected them to the correct site.",
     );
   });
-} catch (e) {
-  console.log(`HTTPS error: ${e}`);
 }
-
-// damn have to use http
-const httpApp = express();
-
-httpApp.use(cors());
-httpApp.use(bodyParser.json());
-
-const secretStuffPath = path.join(currentdir, "secretstuff.json");
-
-
-if (process.env.npm_lifecycle_script !== "nodemon") {
-  console.warn(
-    "You are recommended to use nodemon when developing on the server.",
-  );
-  console.warn("Command: `npx nodemon server.js`");
-}
-
-const httpServer = http.createServer(httpApp);
-httpServer.on('error', (e) => {
-  if (e.code === 'EADDRINUSE') {
-    console.log(`Port ${e.port} is already in use.`);
-  } else {
-    console.log(`Error starting HTTP server:`, e.message);
-  }
-
-  httpPortIndex++;
-  if (httpPortIndex < acceptableHttpPorts.length) {
-    const nextPort = acceptableHttpPorts[httpPortIndex];
-    console.log(`Trying next port: ${nextPort}`);
-    startHttpServer(nextPort);
-  } else {
-    console.error("No more acceptable HTTP ports available.");
-    process.exit(1);
-  }
-});
-
-startHttpServer(acceptableHttpPorts[0]);
-
-function startHttpServer(port) {
-  console.log(`Starting HTTP server on port ${port}...`);
-  httpServer.listen(port);
-}
-httpServer.on('listening', () => {
-  const port = httpServer.address().port;
-  console.log(`Http server is running at http://localhost:${port}`);
-});
-
-httpApp.post("/exportResourcePack", (req, res) => {
-  makePackRequest(req, res, "resource", args);
-});
-
-httpApp.post("/exportBehaviourPack", (req, res) => {
-  makePackRequest(req, res, "behaviour", args);
-});
-
-httpApp.post("/exportCraftingTweak", (req, res) => {
-  makePackRequest(req, res, "crafting", args);
-});
-
-httpApp.get("/downloadTotals", (req, res) => {
-  const type = req.query.type;
-  if (!type) {
-    res.send("You need a specified query. The only query available is `type`.");
-  } else {
-    if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
-      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
-    } else {
-      res.send(
-        `There is no such file called downloadTotals${type}.json at the root directory`,
-      );
-    }
-  }
-});
-
-httpApp.post("/update", (req, res) => {
-  res.send("Lazy ass, just do it yourself");
-  console.log(
-    "Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?",
-  );
-});
-
-httpApp.get("/ping", (req, res) => {
-  res.send("pong?");
-});
-
-httpApp.get("/{*splat}", (req, res) => {
-  res.send(
-    "There's nothing here, you should probably enter into the submodules to find the website.",
-  );
-});
