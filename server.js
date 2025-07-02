@@ -25,7 +25,8 @@ function checkAndInstallPackages(packages) {
 checkAndInstallPackages(requiredPackages);
 const filesystem = require("fs");
 const path = require("path");
-const { makePackRequest, cdir } = require('./packCreation')
+const { makePackRequest } = require('./packCreation')
+const { cdir, loadJson, dumpJson } = require("./helperFuntions.js");
 const httpsApp = require('./https-server').initHttpsServer()
 const httpApp = require('./http-server').initHttpServer()
 const currentdir = process.cwd();

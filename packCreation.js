@@ -3,14 +3,7 @@ const filesystem = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const { execSync } = require("child_process");
-let currentdir = process.cwd();
-function cdir(type) {
-  if (type == "resource") return currentdir + "/resource-packs";
-  else if (type == "behaviour") return currentdir + "/behaviour-packs";
-  else if (type == "crafting") return currentdir + "/crafting-tweaks";
-  else if (type == "base") return currentdir;
-  else return currentdir + "/makePacks";
-}
+const { cdir, loadJson, dumpJson } = require("./helperFuntions.js");
 function makePackRequest(req, res, type) {
   const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;
@@ -395,20 +388,6 @@ function mainCopyFile(fromDir, priorities, isbehaviour) {
   });
 }
 
-function loadJson(path) {
-  try {
-    return JSON.parse(filesystem.readFileSync(path, "utf8"));
-  } catch (error) {
-    console.log(error.stack, "yellow");
-    process.exit(1);
-  }
-}
-
-function dumpJson(path, dictionary) {
-  const data = JSON.stringify(dictionary, (space = 4));
-  filesystem.writeFileSync(path, data, "utf-8");
-}
 module.exports={
-    makePackRequest,
-    cdir
+    makePackRequest
 }
