@@ -8,7 +8,7 @@ function makePackRequest(req, res, type) {
   const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
-  const zipPath = newGenerator(selectedPacks, packName, type, mcVersion);
+  const zipPath = createPack(selectedPacks, packName, type, mcVersion);
 
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
     if (err) {
@@ -45,7 +45,7 @@ function makePackRequest(req, res, type) {
   dumpJson(`downloadTotals${type}.json`, sortedData);
 }
 
-function zipUp(directory) {
+function zipFolder(directory) {
   execSync(`python ${cdir("base")}/zip.py ${directory}`, { stdio: "inherit" });
   if (directory.endsWith("\\")) {
     directory = directory.slice(0, -1);
@@ -77,12 +77,12 @@ function lsdir(directory) {
 
 let realManifest;
 
-function newGenerator(selectedPacks, packName, type, mcVersion) {
+function createPack(selectedPacks, packName, type, mcVersion) {
   if (type == "behaviour") {
-    defaultFileGenerator(selectedPacks, packName, type, mcVersion, "bp");
-    defaultFileGenerator(selectedPacks, packName, type, mcVersion, "rp");
+    generateManifest(selectedPacks, packName, type, mcVersion, "bp");
+    generateManifest(selectedPacks, packName, type, mcVersion, "rp");
   } else {
-    defaultFileGenerator(selectedPacks, packName, type, mcVersion);
+    generateManifest(selectedPacks, packName, type, mcVersion);
   }
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
@@ -91,7 +91,7 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
   );
-  mainCopyFile(fromDir, priorities, type == "behaviour");
+  addFilesToPack(fromDir, priorities, type == "behaviour");
   console.log(`Copied tweaks`);
   console.log(`${realManifest.header.name}.zip 1/2`);
   let extension;
@@ -132,7 +132,7 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
   } else {
     extension = "mcpack";
   }
-  zipUp(`${cdir()}/${realManifest.header.name}`);
+  zipFolder(`${cdir()}/${realManifest.header.name}`);
   console.log(`${realManifest.header.name}.${extension} 2/2`);
   filesystem.renameSync(
     `${path.join(cdir(), realManifest.header.name)}.zip`,
@@ -147,13 +147,7 @@ function newGenerator(selectedPacks, packName, type, mcVersion) {
   return `${path.join(cdir(), realManifest.header.name)}.${extension}`;
 }
 
-function defaultFileGenerator(
-  selectedPacks,
-  packName,
-  type,
-  mcVersion,
-  extra_dir = undefined,
-) {
+function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = undefined) {
   // generate the manifest
   const regex =
     /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
@@ -288,7 +282,7 @@ function listOfFromDirectories(selectedPacks, type) {
   return [fromDir, addedPacksPriority];
 }
 
-function mainCopyFile(fromDir, priorities, isbehaviour) {
+function addFilesToPack(fromDir, priorities, isbehaviour) {
   var addedFiles, addedFilesPriority;
   if (isbehaviour) {
     addedFiles = [
@@ -388,6 +382,6 @@ function mainCopyFile(fromDir, priorities, isbehaviour) {
   });
 }
 
-module.exports={
-    makePackRequest
+module.exports = {
+  makePackRequest
 }
