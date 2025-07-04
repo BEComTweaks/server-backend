@@ -97,7 +97,7 @@ httpApp.post("/exportCraftingTweak", (req, res) => {
 });
 
 httpApp.get("/downloadTotals", (req, res) => {
-    downloadTotals(req, res);
+  downloadTotals(req, res);
 });
 
 httpApp.post("/update", (req, res) => {
@@ -111,7 +111,7 @@ httpApp.get("/ping", (req, res) => {
   res.send("pong?");
 });
 
-httpApp.get("*", (req, res) => {
+httpApp.get("/{*splat}", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
@@ -250,17 +250,18 @@ if (httpsApp) {
     );
   });
 }
-function downloadTotals(req,res){
-    const type = req.query.type;
-    if (!type) {
-      res.send("You need a specified query. The only query available is `type`.");
-    } else {
-      if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
-        res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
-      } else {
-        res.send(
-          `There is no such file called downloadTotals${type}.json at the root directory`,
-        );
-      }
+function downloadTotals(req, res) {
+  const type = req.query.type;
+  if (!type) {
+    res.send("You need a specified query. The only query available is `type`.");
+  } else {
+    if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
+      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
     }
+  }
+  if (!res.headersSent) {
+    res.send(
+      `There is no such file called downloadTotals${type}.json at the root directory`,
+    );
+  }
 }

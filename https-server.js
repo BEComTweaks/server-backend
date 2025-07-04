@@ -3,9 +3,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const filesystem = require("fs");
-let httpsPortIndex = 0;
 const acceptableHttpsPorts = [443, 8443, 8444];
 function initHttpsServer() {
+    let httpsPortIndex = 0;
     try {
         const privateKey = filesystem.readFileSync("private.key", "utf8");
         const certificate = filesystem.readFileSync("certificate.crt", "utf8");

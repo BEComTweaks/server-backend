@@ -2,9 +2,9 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
-let httpPortIndex = 0;
 const acceptableHttpPorts = [80, 8080, 8000];
 function initHttpServer() {
+    let httpPortIndex = 0;
     const httpApp = express();
 
     httpApp.use(cors());
@@ -25,10 +25,10 @@ function initHttpServer() {
     httpServer.on('error', (e) => {
         if (e.code === 'EADDRINUSE') {
             console.log(`Port ${e.port} is already in use.`);
-            changePort()
+            changePort();
         } else if (e.code === 'EACCES') {
             console.log(`Permission denied to use HTTP port ${e.port}`)
-            changePort()
+            changePort();
         } else {
             console.log(`Error with HTTP server:`, e.message);
         }

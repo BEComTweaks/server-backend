@@ -26,15 +26,15 @@ function makePackRequest(req, res, type) {
     }
   });
 
-  let downloadTotals = JSON.parse("{}");
+  let downloadTotals ={};
   if (filesystem.existsSync(`downloadTotals${type}.json`))
     downloadTotals = loadJson(`downloadTotals${type}.json`);
-  if (!downloadTotals.hasOwnProperty("total")) {
+  if (!Object.hasOwn(downloadTotals, "total")) {
     downloadTotals["total"] = 0;
   }
   downloadTotals["total"] += 1;
   for (var i in selectedPacks.raw) {
-    if (!downloadTotals.hasOwnProperty(selectedPacks.raw[i])) {
+    if (!Object.hasOwn(downloadTotals, selectedPacks.raw[i])) {
       downloadTotals[selectedPacks.raw[i]] = 0;
     }
     downloadTotals[selectedPacks.raw[i]] += 1;
@@ -75,14 +75,14 @@ function lsdir(directory) {
   return folderList;
 }
 
-let realManifest;
 
 function createPack(selectedPacks, packName, type, mcVersion) {
+  let realManifest;
   if (type == "behaviour") {
-    generateManifest(selectedPacks, packName, type, mcVersion, "bp");
+    realManifest = generateManifest(selectedPacks, packName, type, mcVersion, "bp");
     generateManifest(selectedPacks, packName, type, mcVersion, "rp");
   } else {
-    generateManifest(selectedPacks, packName, type, mcVersion);
+    realManifest = generateManifest(selectedPacks, packName, type, mcVersion);
   }
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
@@ -152,6 +152,7 @@ function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = 
   const regex =
     /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
   // check if manifest exists in pack alr
+  let templateManifest
   if (extra_dir !== undefined) {
     // this means that pack is bp
     templateManifest = loadJson(
@@ -194,7 +195,7 @@ function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = 
   }
   //templateManifest.modules[0].description = "The most ass filler description ever";
   dumpJson(`${packDir}/manifest.json`, templateManifest);
-  realManifest = templateManifest;
+  let realManifest = templateManifest;
 
   // add the pack icon
   filesystem.copyFileSync(
@@ -203,6 +204,7 @@ function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = 
   );
   // add the selected packs for the easy selecting from site
   dumpJson(`${packDir}/selected_packs.json`, selectedPacks);
+  return realManifest
 }
 
 function listOfFromDirectories(selectedPacks, type) {
@@ -328,7 +330,7 @@ function addFilesToPack(fromDir, priorities, isbehaviour) {
             console.log("No modules found.");
           }
           try {
-            if (!alreadyExistingJson.hasOwnProperty("dependencies")) {
+            if (!Object.hasOwn(alreadyExistingJson, "dependencies")) {
               alreadyExistingJson.dependencies = [];
             }
             newJson.dependencies.forEach((dependency) => {

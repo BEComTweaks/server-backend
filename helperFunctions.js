@@ -12,7 +12,7 @@ function loadJson(path) {
   try {
     return JSON.parse(filesystem.readFileSync(path, "utf8"));
   } catch (error) {
-    console.log(error.stack, "yellow");
+    console.log(error.stack);
     process.exit(1);
   }
 }
