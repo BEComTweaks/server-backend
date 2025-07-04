@@ -26,7 +26,7 @@ checkAndInstallPackages(requiredPackages);
 const filesystem = require("fs");
 const path = require("path");
 const { makePackRequest } = require('./packCreation')
-const { cdir, loadJson, dumpJson } = require("./helperFuntions.js");
+const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
 const httpsApp = require('./https-server').initHttpsServer()
 const httpApp = require('./http-server').initHttpServer()
 const currentdir = process.cwd();
@@ -111,7 +111,7 @@ httpApp.get("/ping", (req, res) => {
   res.send("pong?");
 });
 
-httpApp.get("/{*splat}", (req, res) => {
+httpApp.get("*", (req, res) => {
   res.send(
     "There's nothing here, you should probably enter into the submodules to find the website.",
   );
@@ -263,5 +263,4 @@ function downloadTotals(req,res){
         );
       }
     }
-
 }

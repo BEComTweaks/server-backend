@@ -3,7 +3,7 @@ const filesystem = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const { execSync } = require("child_process");
-const { cdir, loadJson, dumpJson } = require("./helperFuntions.js");
+const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
 function makePackRequest(req, res, type) {
   const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;

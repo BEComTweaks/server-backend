@@ -18,7 +18,7 @@ function loadJson(path) {
 }
 
 function dumpJson(path, dictionary) {
-  const data = JSON.stringify(dictionary, (space = 4));
+  const data = JSON.stringify(dictionary, null, 4);
   filesystem.writeFileSync(path, data, "utf-8");
 }
 module.exports = {
