@@ -91,7 +91,7 @@ function createPack(selectedPacks, packName, type, mcVersion) {
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
   );
-  addFilesToPack(fromDir, priorities, type == "behaviour");
+  addFilesToPack(fromDir, priorities, type == "behaviour", realManifest);
   console.log(`Copied tweaks`);
   console.log(`${realManifest.header.name}.zip 1/2`);
   let extension;
@@ -284,7 +284,7 @@ function listOfFromDirectories(selectedPacks, type) {
   return [fromDir, addedPacksPriority];
 }
 
-function addFilesToPack(fromDir, priorities, isbehaviour) {
+function addFilesToPack(fromDir, priorities, isbehaviour,manifest) {
   var addedFiles, addedFilesPriority;
   if (isbehaviour) {
     addedFiles = [
@@ -310,7 +310,7 @@ function addFilesToPack(fromDir, priorities, isbehaviour) {
       if (item === "./") {
         return;
       }
-      const targetPath = path.join(cdir(), realManifest.header.name, item);
+      const targetPath = path.join(cdir(), manifest.header.name, item);
       if (item.endsWith("/")) {
         // create directory if it doesnt exist
         if (!filesystem.existsSync(targetPath)) {
