@@ -240,7 +240,7 @@ function listOfFromDirectories(selectedPacks, type) {
           comp_file[`${n}way`][
           compatibilities[`${n}way`].indexOf(compatibility)
           ];
-        console.log(thisDefinedCompatibility);
+        if(process.argv.includes("--dev")) console.log(thisDefinedCompatibility);
         // check if you should overwrite
         if (thisDefinedCompatibility.overwrite) {
           // ignore adding respective packs
