@@ -40,7 +40,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/resource-packs`);
   try {
     execSync(
-      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -52,7 +52,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/behaviour-packs`);
   try {
     execSync(
-      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -65,7 +65,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/crafting-tweaks`);
   try {
     execSync(
-      "python pys/pre_commit.py --no-stash --build server --no-spinner --format",
+      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
