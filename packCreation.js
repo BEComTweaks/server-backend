@@ -351,8 +351,14 @@ function addFilesToPack(fromDir, priorities, isbehaviour,manifest) {
             // first check if manifest.json
             const alreadyExistingJson = loadJson(targetPath);
             const newJson = loadJson(path.join(dir, item));
-            const mergedJson = lodash.merge(newJson, alreadyExistingJson);
-            dumpJson(targetPath, mergedJson);
+            const customizer = (objValue, srcValue) => {
+              if (lodash.isArray(objValue) && lodash.isArray(srcValue)) {
+                return objValue.concat(srcValue);
+              }
+              return undefined;
+            };
+            const mergedData = lodash.mergeWith({}, newJson, alreadyExistingJson, customizer);
+            dumpJson(targetPath, mergedData);
           } else if (
             item.endsWith(".lang") ||
             item.endsWith(".mcfunction") ||
