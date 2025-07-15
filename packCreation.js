@@ -5,7 +5,9 @@ const path = require("path");
 const zipFolder = require("./zip.js");
 const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
 async function makePackRequest(req, res, type) {
-  const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
+  const rawPackName = (req.headers.packname || `BTRP-${Math.floor(Math.random() * 1000000)}`)
+  const packName = (rawPackName.replaceAll(/[\.\/\\]/g, "") || `BTRP-${Math.floor(Math.random() * 1000000)}`)
+  console.log(path.join(cdir(), packName), packName);
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
   const zipPath = await createPack(selectedPacks, packName, type, mcVersion);
@@ -26,7 +28,7 @@ async function makePackRequest(req, res, type) {
     }
   });
 
-  let downloadTotals ={};
+  let downloadTotals = {};
   if (filesystem.existsSync(`downloadTotals${type}.json`))
     downloadTotals = loadJson(`downloadTotals${type}.json`);
   if (!Object.hasOwn(downloadTotals, "total")) {
@@ -234,7 +236,7 @@ function listOfFromDirectories(selectedPacks, type) {
           comp_file[`${n}way`][
           compatibilities[`${n}way`].indexOf(compatibility)
           ];
-        if(process.argv.includes("--dev")) console.log(thisDefinedCompatibility);
+        if (process.argv.includes("--dev")) console.log(thisDefinedCompatibility);
         // check if you should overwrite
         if (thisDefinedCompatibility.overwrite) {
           // ignore adding respective packs
@@ -278,7 +280,7 @@ function listOfFromDirectories(selectedPacks, type) {
   return [fromDir, addedPacksPriority];
 }
 
-function addFilesToPack(fromDir, priorities, isbehaviour,manifest) {
+function addFilesToPack(fromDir, priorities, isbehaviour, manifest) {
   var addedFiles, addedFilesPriority;
   if (isbehaviour) {
     addedFiles = [
