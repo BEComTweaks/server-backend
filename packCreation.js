@@ -2,13 +2,13 @@ const lodash = require("lodash");
 const filesystem = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
-const { execSync } = require("child_process");
+const zipFolder = require("./zip.js");
 const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
-function makePackRequest(req, res, type) {
+async function makePackRequest(req, res, type) {
   const packName = req.headers.packname.replace(/[^a-zA-Z0-9\-_]/g, "");
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
-  const zipPath = createPack(selectedPacks, packName, type, mcVersion);
+  const zipPath = await createPack(selectedPacks, packName, type, mcVersion);
 
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
     if (err) {
@@ -45,12 +45,6 @@ function makePackRequest(req, res, type) {
   dumpJson(`downloadTotals${type}.json`, sortedData);
 }
 
-function zipFolder(directory) {
-  execSync(`python ${cdir("base")}/zip.py ${directory}`, { stdio: "inherit" });
-  if (directory.endsWith("\\")) {
-    directory = directory.slice(0, -1);
-  }
-}
 
 function lsdir(directory) {
   let folderList = [];
@@ -76,7 +70,7 @@ function lsdir(directory) {
 }
 
 
-function createPack(selectedPacks, packName, type, mcVersion) {
+async function createPack(selectedPacks, packName, type, mcVersion) {
   let realManifest;
   if (type == "behaviour") {
     realManifest = generateManifest(selectedPacks, packName, type, mcVersion, "bp");
@@ -132,7 +126,7 @@ function createPack(selectedPacks, packName, type, mcVersion) {
   } else {
     extension = "mcpack";
   }
-  zipFolder(`${cdir()}/${realManifest.header.name}`);
+  await zipFolder(`${cdir()}/${realManifest.header.name}`);
   console.log(`${realManifest.header.name}.${extension} 2/2`);
   filesystem.renameSync(
     `${path.join(cdir(), realManifest.header.name)}.zip`,
