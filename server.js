@@ -47,7 +47,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/resource-packs`);
   try {
     execSync(
-      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -59,7 +59,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/behaviour-packs`);
   try {
     execSync(
-      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -72,7 +72,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/crafting-tweaks`);
   try {
     execSync(
-      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -220,7 +220,12 @@ function updateServer(req, res) {
         ${gray}${gitSubmoduleOutput}${reset}
         Do a GET /checkOnline to see the changes.
         `;
-      return res.status(200).send(formattedResponse);
+      if (process.argv.includes("--exit-on-update")) {
+        res.status(200).send(formattedResponse);
+        process.exit(0);
+      } else {
+        return res.status(200).send(formattedResponse);
+      }
     } catch (error) {
       const red = "\x1b[31m";
       const gray = "\x1b[90m";
