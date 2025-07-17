@@ -34,13 +34,20 @@ const secretStuffPath = path.join(currentdir, "secretstuff.json");
 const { v4: uuidv4 } = require("uuid");
 
 if (!process.argv.includes("--no-rebuild")) {
+  let venvIndex = -1
+  for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === "--venv") {
+      venvIndex = i;
+      break;
+    }
+  }
   /* Rebuild everything when you start the server */
   console.log("Rebuilding...");
   console.log("Rebuilding resource packs...");
   process.chdir(`${cdir("base")}/resource-packs`);
   try {
     execSync(
-      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -52,7 +59,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/behaviour-packs`);
   try {
     execSync(
-      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
@@ -65,7 +72,7 @@ if (!process.argv.includes("--no-rebuild")) {
   process.chdir(`${cdir("base")}/crafting-tweaks`);
   try {
     execSync(
-      `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
+      `${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`,
       { stdio: "inherit" },
     );
     execSync("git add .");
