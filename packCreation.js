@@ -7,7 +7,6 @@ const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
 async function makePackRequest(req, res, type) {
   const rawPackName = (req.headers.packname || `BTRP-${Math.floor(Math.random() * 1000000)}`)
   const packName = (rawPackName.replaceAll(/[\.\/\\]/g, "") || `BTRP-${Math.floor(Math.random() * 1000000)}`)
-  console.log(path.join(cdir(), packName), packName);
   const selectedPacks = req.body;
   const mcVersion = req.headers.mcversion;
   const zipPath = await createPack(selectedPacks, packName, type, mcVersion);

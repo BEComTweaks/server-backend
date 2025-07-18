@@ -1,3 +1,14 @@
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(`Usage: node server.js [options]
+Options:
+  --no-rebuild          Do not rebuild resource packs and behaviour packs on server start.
+  --venv <path>         Specify the path to the python virtual environment to activate before running the rebuild commands.
+  --no-format           Skip formatting during the rebuild process.
+  --dev                 Enable development mode, allowing the server to respond to update requests over http and enables more logging.
+  --exit-on-update      Exit the server after a successful update.
+  --help, -h           Show this help message.`);
+  process.exit(0);
+}
 const { execSync } = require("child_process");
 const requiredPackages = [
   "express",
