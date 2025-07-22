@@ -1,6 +1,5 @@
 const https = require("https");
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const filesystem = require("fs");
 const acceptableHttpsPorts = [443, 8443, 8444];
@@ -18,7 +17,7 @@ function initHttpsServer() {
         }
         const httpsApp = express();
         httpsApp.use(cors());
-        httpsApp.use(bodyParser.json());
+        httpsApp.use(express.json());
         const httpsServer = https.createServer(credentials, httpsApp);
         startHttpsServer(acceptableHttpsPorts[0]);
 

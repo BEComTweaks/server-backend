@@ -12,7 +12,6 @@ Options:
 const { execSync } = require("child_process");
 const requiredPackages = [
   "express",
-  "body-parser",
   "fs",
   "path",
   "uuid",
@@ -95,9 +94,9 @@ if (!process.argv.includes("--no-rebuild")) {
   console.log("Rebuild complete! Setting up server...");
 }
 
-if (process.env.npm_lifecycle_script !== "nodemon") {
+if (process.env.npm_lifecycle_script !== "nodemon" && !(process.env.PM2_HOME || process.env.PM2_ENV)) {
   console.warn(
-    "It is recommended to use nodemon when developing or running the server.",
+    "It is recommended to use nodemon when developing or pm2 when running the server.",
   );
   console.warn("Command: `npx nodemon server.js`");
 }

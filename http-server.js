@@ -1,5 +1,4 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 const http = require("http");
 const acceptableHttpPorts = [80, 8080, 8000];
@@ -8,7 +7,7 @@ function initHttpServer() {
     const httpApp = express();
 
     httpApp.use(cors());
-    httpApp.use(bodyParser.json());
+    httpApp.use(express.json());
     const httpServer = http.createServer(httpApp);
     startHttpServer(acceptableHttpPorts[0]);
 
