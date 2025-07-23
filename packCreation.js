@@ -368,12 +368,11 @@ function addFilesToPack(fromDir, priorities, isbehaviour, manifest) {
             filesystem.appendFileSync(targetPath, `\n${newFileToMerge}`);
           } else if (
             priorities[dirIndexed] >
-            addedFilesPriority[addedFiles.indexOf(item)]
+            priorities[addedFiles.indexOf(item)]
           ) {
             // binary files, usually images
             filesystem.copyFileSync(path.join(dir, item), targetPath);
-            addedFilesPriority[addedFiles.indexOf(item)] =
-              priorities[dirIndexed];
+            priorities[addedFiles.indexOf(item)] = priorities[dirIndexed];
           }
         } else {
           filesystem.copyFileSync(path.join(dir, item), targetPath);
