@@ -230,7 +230,7 @@ function updateServer(req, res) {
         ${gray}${gitSubmoduleOutput}${reset}
         Do a GET /checkOnline to see the changes.
         `;
-      if (process.argv.includes("--exit-on-update")) {
+      if (process.argv.includes("--exit-on-update")&&!gitPullOutput.includes("Already up to date.")) {
         res.status(200).send(formattedResponse);
         process.exit(0);
       } else {
