@@ -36,60 +36,62 @@ checkAndInstallPackages(requiredPackages);
 const filesystem = require("fs");
 const path = require("path");
 const { makePackRequest } = require('./packCreation')
-const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
+const { cdir, loadJson, dumpJson, isBashInstalled } = require("./helperFunctions.js");
 const httpsApp = require('./https-server').initHttpsServer()
 const httpApp = require('./http-server').initHttpServer()
 const currentdir = process.cwd();
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 const { v4: uuidv4 } = require("uuid");
+const os = require("os");
+
 
 if (!process.argv.includes("--no-rebuild")) {
-  let venvIndex = -1
+  let venvActivationScriptPath = null;
   for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i] === "--venv") {
-      venvIndex = i;
+    if (process.argv[i] === "--venv" && i + 1 < process.argv.length) {
+      venvActivationScriptPath = process.argv[i + 1];
       break;
     }
   }
-  /* Rebuild everything when you start the server */
-  console.log("Rebuilding...");
-  console.log("Rebuilding resource packs...");
-  process.chdir(`${cdir("base")}/resource-packs`);
-  try {
-    execSync(
-      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
-      { stdio: "inherit" },
-    );
-    execSync("git add .");
-  } catch (error) {
-    console.error("Error during resource pack rebuild:", error.message);
-    process.exit(1);
-  }
-  console.log("Rebuilding behaviour packs...");
-  process.chdir(`${cdir("base")}/behaviour-packs`);
-  try {
-    execSync(
-      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
-      { stdio: "inherit" },
-    );
-    execSync("git add .");
-  } catch (error) {
-    console.error("Error during behaviour pack rebuild:", error.message);
-    process.exit(1);
-  }
 
-  console.log("Rebuilding crafting tweaks...");
-  process.chdir(`${cdir("base")}/crafting-tweaks`);
-  try {
-    execSync(
-      `bash -c "${venvIndex > -1 ? `source ${process.argv[venvIndex + 1]};` : ""} python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}"`,
-      { stdio: "inherit" },
-    );
-    execSync("git add .");
-  } catch (error) {
-    console.error("Error during crafting tweaks rebuild:", error.message);
-    process.exit(1);
-  }
+  const isWindows = os.platform() === "win32";
+  const bashIsInstalled = isBashInstalled();
+  const usingBash = !isWindows && bashIsInstalled;
+
+  let commandRunnerPrefix = usingBash ? 'bash -c ' : "powershell -Command";
+
+  const runBuildCommand = (dir) => {
+    console.log(`Rebuilding ${dir.split(path.sep).pop()}...`);
+    process.chdir(dir);
+
+    let fullCommand = `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`;
+
+    if (venvActivationScriptPath != null) {
+      if (venvActivationScriptPath) {
+        if (usingBash) {
+          fullCommand = `source ${venvActivationScriptPath} && ${fullCommand}`;
+        } else {
+          fullCommand = `& { . "${venvActivationScriptPath}" | Out-Null; ${fullCommand} }`;
+        }
+      }
+    }
+    try {
+      const finalExecCommand = usingBash ? fullCommand : fullCommand.replace(/"/g, '`"');
+
+      execSync(`${commandRunnerPrefix} "${finalExecCommand}"`, {stdio: "inherit"});
+      execSync("git add .");
+    } catch (error) {
+      console.error(`Error during ${dir.split(path.sep).pop()} rebuild:`, error.message);
+      process.exit(1);
+    }
+  };
+
+  console.log("Rebuilding...");
+
+  runBuildCommand(cdir("resource"));
+  runBuildCommand(cdir("behaviour"));
+  runBuildCommand(cdir("crafting"));
+
   process.chdir(currentdir);
   console.log("Rebuild complete! Setting up server...");
 }
@@ -230,7 +232,7 @@ function updateServer(req, res) {
         ${gray}${gitSubmoduleOutput}${reset}
         Do a GET /checkOnline to see the changes.
         `;
-      if (process.argv.includes("--exit-on-update")&&!gitPullOutput.includes("Already up to date.")) {
+      if (process.argv.includes("--exit-on-update") && !gitPullOutput.includes("Already up to date.")) {
         res.status(200).send(formattedResponse);
         process.exit(0);
       } else {
