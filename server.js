@@ -188,14 +188,18 @@ function downloadTotals(req, res) {
   if (!type) {
     res.send("You need a specified query. The only query available is `type`.");
   } else {
+    console.log(`${cdir("base")}/downloadTotals${type}.json`, filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`));
     if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
-      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`);
+      res.sendFile(`${cdir("base")}/downloadTotals${type}.json`, (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+        }
+      });
+    } else {
+      res.send(
+        `There is no such file called downloadTotals${type}.json at the root directory`,
+      );
     }
-  }
-  if (!res.headersSent) {
-    res.send(
-      `There is no such file called downloadTotals${type}.json at the root directory`,
-    );
   }
 }
 function updateServer(req, res) {
