@@ -28,8 +28,22 @@ async function makePackRequest(req, res, type) {
   });
 
   let downloadTotals = {};
-  if (filesystem.existsSync(`downloadTotals${type}.json`))
-    downloadTotals = loadJson(`downloadTotals${type}.json`);
+  let fileIndex = 0;
+  let fileName = `downloadTotals${type}.json`;
+  let fileLoaded = false;
+  while(!fileLoaded) {
+    try{
+      if (filesystem.existsSync(fileName)) {
+        downloadTotals = JSON.parse(filesystem.readFileSync(fileName, "utf8"));
+      }
+      fileLoaded = true;
+    } catch (e) {
+      console.log(`Error loading ${fileName}: ${e.message}. Trying next file index.`);
+      downloadTotals = {};
+      fileIndex++;
+      fileName = `downloadTotals${type}${fileIndex}.json`;
+    }
+  }
   if (!Object.hasOwn(downloadTotals, "total")) {
     downloadTotals["total"] = 0;
   }
@@ -43,7 +57,11 @@ async function makePackRequest(req, res, type) {
   const sortedDownloadTotals = Object.entries(downloadTotals);
   sortedDownloadTotals.sort((a, b) => b[1] - a[1]);
   const sortedData = Object.fromEntries(sortedDownloadTotals);
-  dumpJson(`downloadTotals${type}.json`, sortedData);
+  let dumpFileName = `downloadTotals${type}.json`;
+  if (fileIndex > 0) {
+    dumpFileName = `downloadTotals${type}${fileIndex}.json`;
+  }
+  dumpJson(dumpFileName, sortedData);
 }
 
 
