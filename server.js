@@ -138,7 +138,7 @@ if (process.argv.includes("--dev")) {
 }
 
 httpApp.get("/ping", (req, res) => {
-  res.send("pong?");
+  res.send("Pong!");
 });
 
 httpApp.get("/{*splat}", (req, res) => {
@@ -186,7 +186,7 @@ if (httpsApp) {
 function downloadTotals(req, res) {
   const type = req.query.type;
   if (!type) {
-    res.send("You need a specified query. The only query available is `type`.");
+    res.status(400).send("You need a specified query. The only query available is `type`.");
   } else {
     console.log(`${cdir("base")}/downloadTotals${type}.json`, filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`));
     if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
@@ -196,7 +196,7 @@ function downloadTotals(req, res) {
         }
       });
     } else {
-      res.send(
+      res.status(404).send(
         `There is no such file called downloadTotals${type}.json at the root directory`,
       );
     }
@@ -205,7 +205,8 @@ function downloadTotals(req, res) {
 function updateServer(req, res) {
   const key = req.query.key;
   if (!key) {
-    res.send("You need a key to update the server.");
+    res.status(400).send("You need a key to update the server.");
+    return;
   }
   if (!filesystem.existsSync(secretStuffPath)) {
     const newkey = uuidv4();
@@ -255,7 +256,7 @@ function updateServer(req, res) {
       return res.status(500).send(errorResponse);
     }
   } else {
-    res.send("Wrong key!");
+    res.status(403).send("Wrong key!");
   }
 
 }
