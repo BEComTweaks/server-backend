@@ -19,3 +19,6 @@ downloadTotalsbehaviour.json
 # secrets
 secretstuff.json
 __pycache__
+
+# endpoint-tester downloaded files
+endpoint-tester-downloads/

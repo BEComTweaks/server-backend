@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "archiver": "^7.0.1",
+    "axios": "^1.11.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "fs": "0.0.1-security",
