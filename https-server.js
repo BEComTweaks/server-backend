@@ -17,7 +17,7 @@ function initHttpsServer() {
         }
         const httpsApp = express();
         httpsApp.use(cors());
-        httpsApp.use(express.json());
+        httpsApp.use(express.text({ type: 'application/json' }));
         const httpsServer = https.createServer(credentials, httpsApp);
         startHttpsServer(acceptableHttpsPorts[0]);
 

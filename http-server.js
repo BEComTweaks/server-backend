@@ -7,7 +7,7 @@ function initHttpServer() {
     const httpApp = express();
 
     httpApp.use(cors());
-    httpApp.use(express.json());
+    httpApp.use(express.text({ type: 'application/json' }));
     const httpServer = http.createServer(httpApp);
     startHttpServer(acceptableHttpPorts[0]);
 

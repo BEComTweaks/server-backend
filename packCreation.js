@@ -7,10 +7,17 @@ const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
 async function makePackRequest(req, res, type) {
   const rawPackName = (req.headers.packname || `BTRP-${Math.floor(Math.random() * 1000000)}`)
   const packName = (rawPackName.replaceAll(/[\.\/\\]/g, "") || `BTRP-${Math.floor(Math.random() * 1000000)}`)
-  const selectedPacks = req.body;
+  let selectedPacks;
+  try {
+    selectedPacks = JSON.parse(req.body);
+  } catch (error) {
+    console.log("Error parsing request body:", req.body);
+    return res.status(400).send("Invalid JSON in request body.");
+  }
   const mcVersion = req.headers.mcversion;
-  const zipPath = await createPack(selectedPacks, packName, type, mcVersion);
-
+  const zipPath = await createPack(selectedPacks, packName, type, mcVersion, res);
+  if (!zipPath)
+    return;
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
     if (err) {
       console.error("Error downloading the file:", err);
@@ -31,8 +38,8 @@ async function makePackRequest(req, res, type) {
   let fileIndex = 0;
   let fileName = `downloadTotals${type}.json`;
   let fileLoaded = false;
-  while(!fileLoaded) {
-    try{
+  while (!fileLoaded) {
+    try {
       if (filesystem.existsSync(fileName)) {
         downloadTotals = JSON.parse(filesystem.readFileSync(fileName, "utf8"));
       }
@@ -89,14 +96,16 @@ function lsdir(directory) {
 }
 
 
-async function createPack(selectedPacks, packName, type, mcVersion) {
+async function createPack(selectedPacks, packName, type, mcVersion, res) {
   let realManifest;
   if (type == "behaviour") {
-    realManifest = generateManifest(selectedPacks, packName, type, mcVersion, "bp");
-    generateManifest(selectedPacks, packName, type, mcVersion, "rp");
+    realManifest = generateManifest(selectedPacks, packName, type, mcVersion, res, "bp");
+    if (!realManifest) return null;
+    generateManifest(selectedPacks, packName, type, mcVersion, res, "rp");
   } else {
-    realManifest = generateManifest(selectedPacks, packName, type, mcVersion);
+    realManifest = generateManifest(selectedPacks, packName, type, mcVersion, res);
   }
+  if (!realManifest) return null;
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
   if (process.argv.includes('--dev')) console.log([fromDir, priorities]);
@@ -160,7 +169,7 @@ async function createPack(selectedPacks, packName, type, mcVersion) {
   return `${path.join(cdir(), realManifest.header.name)}.${extension}`;
 }
 
-function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = undefined) {
+function generateManifest(selectedPacks, packName, type, mcVersion, res, extra_dir = undefined) {
   // generate the manifest
   const regex =
     /^\d\.\d\d$|^\d\.\d\d\.\d$|^\d\.\d\d\.\d\d$|^\d\.\d\d\.\d\d\d$/gm;
@@ -176,13 +185,19 @@ function generateManifest(selectedPacks, packName, type, mcVersion, extra_dir = 
   }
   templateManifest.header.name = packName;
   let description = "";
-  for (let i in selectedPacks) {
-    if (i !== "raw" && selectedPacks[i].length !== 0) {
-      description += `\n${i}`;
-      selectedPacks[i].forEach((p) => {
-        description += `\n\t${p}`;
-      });
+  try {
+    for (let i in selectedPacks) {
+      if (i !== "raw" && selectedPacks[i].length !== 0) {
+        description += `\n${i}`;
+        selectedPacks[i].forEach((p) => {
+          description += `\n\t${p}`;
+        });
+      }
     }
+  } catch (error) {
+    console.log("Invalid pack list.", selectedPacks);
+    res.status(400).send("Invalid pack list.");
+    return null;
   }
   templateManifest.header.description = description.slice(1);
   if (regex.test(mcVersion)) {

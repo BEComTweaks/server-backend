@@ -19,6 +19,7 @@ const testResults = [];
 
 // Define all your endpoints and their test configurations
 // Each `testCases` array defines different scenarios or expected responses for an endpoint
+// Schema: https://becomtweaks.github.io/schema/endpoint_tester.json
 const endpoints = [
   {
     name: "Export Resource Pack",
@@ -67,11 +68,25 @@ const endpoints = [
         responseTypeExpected: "file",
         outputFileName: "resource_pack.mcpack",
         headers: {
-          // Headers specific to this test case if different from top-level
           Accept: "application/zip, application/octet-stream",
         },
         expectedStatus: 200,
       },
+      {
+        description: "invalid json body",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: "<invalid_json>",
+      },
+      {
+        description: "invalid json format",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: '{"test":123}',
+        expectedContentExact: "Invalid pack list."
+      }
     ],
   },
   {
@@ -98,6 +113,21 @@ const endpoints = [
         headers: { Accept: "application/zip, application/octet-stream" },
         expectedStatus: 200,
       },
+      {
+        description: "invalid json body",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: "<invalid_json>",
+      },
+      {
+        description: "invalid json format",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: '{"test":123}',
+        expectedContentExact: "Invalid pack list."
+      }
     ],
   },
   {
@@ -124,6 +154,21 @@ const endpoints = [
         headers: { Accept: "application/zip, application/octet-stream" },
         expectedStatus: 200,
       },
+      {
+        description: "invalid json body",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: "<invalid_json>",
+      },
+      {
+        description: "invalid json format",
+        responseTypeExpected: "text",
+        headers: { Accept: "text/plain" },
+        expectedStatus: 400,
+        payloadOverride: '{"test":123}',
+        expectedContentExact: "Invalid pack list."
+      }
     ],
   },
   {
@@ -250,7 +295,7 @@ async function testEndpoint(endpointConfig) {
     name,
     path: baseEndpointPath,
     method,
-    payload,
+    payload: basePayload, // Renamed to basePayload
     headers: baseHeaders,
     testCases,
   } = endpointConfig;
@@ -261,6 +306,7 @@ async function testEndpoint(endpointConfig) {
     const {
       description,
       pathOverride,
+      payloadOverride, // NEW: Destructure payloadOverride
       responseTypeExpected,
       outputFileName,
       headers: testCaseHeaders,
@@ -279,6 +325,9 @@ async function testEndpoint(endpointConfig) {
       ? path.join(DOWNLOAD_DIR, outputFileName)
       : null;
 
+    // Determine the payload to use for this test case
+    const currentPayload = payloadOverride !== undefined ? payloadOverride : basePayload; // Prioritize payloadOverride
+
     // Combine base headers with test case specific headers
     const combinedHeaders = { ...baseHeaders, ...testCaseHeaders };
 
@@ -286,8 +335,8 @@ async function testEndpoint(endpointConfig) {
     console.log(`  URL: ${fullUrl}`);
     console.log(`  Method: ${method}`);
     console.log(`  Headers: ${JSON.stringify(combinedHeaders)}`);
-    if (method !== "GET" && payload) {
-      console.log(`  Payload: ${JSON.stringify(payload)}`);
+    if (method !== "GET" && currentPayload) {
+      console.log(`  Payload: ${JSON.stringify(currentPayload)}`);
     }
 
     let status = "FAIL";
@@ -301,7 +350,7 @@ async function testEndpoint(endpointConfig) {
         method: method,
         url: fullUrl,
         headers: combinedHeaders,
-        data: payload,
+        data: currentPayload,
         // Set responseType based on expected type for Axios to handle initial parsing
         responseType: responseTypeExpected === "file" ? "stream" : "text",
         maxRedirects: 0, // Prevent axios from following redirects automatically
