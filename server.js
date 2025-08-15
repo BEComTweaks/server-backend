@@ -78,7 +78,7 @@ if (!process.argv.includes("--no-rebuild")) {
     try {
       const finalExecCommand = usingBash ? fullCommand : fullCommand.replace(/"/g, '`"');
 
-      execSync(`${commandRunnerPrefix} "${finalExecCommand}"`, {stdio: "inherit"});
+      execSync(`${commandRunnerPrefix} "${finalExecCommand}"`, { stdio: "inherit" });
       execSync("git add .");
     } catch (error) {
       console.error(`Error during ${dir.split(path.sep).pop()} rebuild:`, error.message);
@@ -142,9 +142,7 @@ httpApp.get("/ping", (req, res) => {
 });
 
 httpApp.get("/{*splat}", (req, res) => {
-  res.send(
-    "There's nothing here, you should probably enter into the submodules to find the website.",
-  );
+  res.redirect("https://becomtweaks.github.io");
 });
 
 if (httpsApp) {

@@ -75,9 +75,10 @@ const endpoints = [
       {
         description: "invalid json body",
         responseTypeExpected: "text",
-        headers: { Accept: "text/plain" },
+        headers: { Accept: "text/plain", "Content-Type": "application/text" },
         expectedStatus: 400,
         payloadOverride: "<invalid_json>",
+        expectedContentExact: "Invalid JSON in request body."
       },
       {
         description: "invalid json format",
@@ -116,9 +117,10 @@ const endpoints = [
       {
         description: "invalid json body",
         responseTypeExpected: "text",
-        headers: { Accept: "text/plain" },
+        headers: { Accept: "text/plain", "Content-Type": "application/text" },
         expectedStatus: 400,
         payloadOverride: "<invalid_json>",
+        expectedContentExact: "Invalid JSON in request body."
       },
       {
         description: "invalid json format",
@@ -157,9 +159,10 @@ const endpoints = [
       {
         description: "invalid json body",
         responseTypeExpected: "text",
-        headers: { Accept: "text/plain" },
+        headers: { Accept: "text/plain", "Content-Type": "application/text" },
         expectedStatus: 400,
         payloadOverride: "<invalid_json>",
+        expectedContentExact: "Invalid JSON in request body."
       },
       {
         description: "invalid json format",
@@ -191,7 +194,6 @@ const endpoints = [
         responseTypeExpected: "text",
         headers: { Accept: "text/plain" },
         expectedStatus: 404, // Server sends 404 for non-existent resource
-        expectedContentPartial: "There is no such file",
         expectedContentExact:
           "There is no such file called downloadTotalsnonExistent.json at the root directory",
       },
@@ -201,7 +203,6 @@ const endpoints = [
         responseTypeExpected: "text",
         headers: { Accept: "text/plain" },
         expectedStatus: 400, // Server sends 400 for bad request
-        expectedContentPartial: "You need a specified query.",
         expectedContentExact:
           "You need a specified query. The only query available is `type`.",
       },
@@ -335,7 +336,7 @@ async function testEndpoint(endpointConfig) {
     console.log(`  URL: ${fullUrl}`);
     console.log(`  Method: ${method}`);
     console.log(`  Headers: ${JSON.stringify(combinedHeaders)}`);
-    if (method !== "GET" && currentPayload) {
+    if (currentPayload) {
       console.log(`  Payload: ${JSON.stringify(currentPayload)}`);
     }
 
