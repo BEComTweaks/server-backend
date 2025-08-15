@@ -142,7 +142,9 @@ httpApp.get("/ping", (req, res) => {
 });
 
 httpApp.get("/{*splat}", (req, res) => {
-  res.redirect("https://becomtweaks.github.io");
+  res.send(
+    "There's nothing here, you should probably enter into the submodules to find the website.",
+  );
 });
 
 if (httpsApp) {
