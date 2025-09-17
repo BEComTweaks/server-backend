@@ -35,8 +35,9 @@ function isBashInstalled() {
 
 function uuidv4() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (input) {
-    var random = (Math.random() * 16) | 0,
-      value = input == "x" ? random : (random & 0x3) | 0x8;
+    var random = Math.floor(Math.random() * 16);
+    if (input == "x") value = random; // Use the random value directly for 'x'
+    if (input == "y") value = (random % 4) + 8; // Ensure 'y' is one of 8, 9, A, or B
     return value.toString(16);
   });
 }

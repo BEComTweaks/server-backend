@@ -14,7 +14,6 @@ const requiredPackages = [
   "express",
   "fs",
   "path",
-  "uuid",
   "cors",
   "https",
   "nodemon",
