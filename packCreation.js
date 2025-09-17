@@ -1,9 +1,8 @@
 const lodash = require("lodash");
 const filesystem = require("fs");
-const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const zipFolder = require("./zip.js");
-const { cdir, loadJson, dumpJson } = require("./helperFunctions.js");
+const { cdir, loadJson, dumpJson, uuidv4 } = require("./helperFunctions.js");
 async function makePackRequest(req, res, type) {
   const rawPackName = (req.headers.packname || `BTRP-${Math.floor(Math.random() * 1000000)}`)
   const packName = (rawPackName.replaceAll(/[\.\/\\]/g, "") || `BTRP-${Math.floor(Math.random() * 1000000)}`)

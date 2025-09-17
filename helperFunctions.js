@@ -32,9 +32,19 @@ function isBashInstalled() {
     return false;
   }
 }
+
+function uuidv4() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (input) {
+    var random = (Math.random() * 16) | 0,
+      value = input == "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
 module.exports = {
   cdir,
   loadJson,
   dumpJson,
   isBashInstalled,
+  uuidv4,
 };

@@ -36,12 +36,11 @@ checkAndInstallPackages(requiredPackages);
 const filesystem = require("fs");
 const path = require("path");
 const { makePackRequest } = require('./packCreation')
-const { cdir, loadJson, dumpJson, isBashInstalled } = require("./helperFunctions.js");
+const { cdir, loadJson, dumpJson, isBashInstalled, uuidv4 } = require("./helperFunctions.js");
 const httpsApp = require('./https-server').initHttpsServer()
 const httpApp = require('./http-server').initHttpServer()
 const currentdir = process.cwd();
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
-const { v4: uuidv4 } = require("uuid");
 const os = require("os");
 
 
