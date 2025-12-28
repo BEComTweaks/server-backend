@@ -232,6 +232,7 @@ function updateServer(req, res) {
       console.log("Updating Submodules...");
       const gitSubmoduleOutput = execSync("git submodule update").toString();
       console.log("Updated Submodules");
+      const gitStatusOutput = execSync("git status").toString();
       const blue = "\x1b[34m";
       const gray = "\x1b[90m";
       const reset = "\x1b[0m";
@@ -241,6 +242,8 @@ ${blue}Git Pull Output:${reset}
 ${gray}${gitPullOutput}${reset}
 ${blue}Submodule Update Output:${reset}
 ${gray}${gitSubmoduleOutput}${reset}
+${blue}Git Status Output:${reset}
+${gray}${gitStatusOutput}${reset}
 Do a GET /checkOnline to see the changes.
 `;
       if (process.argv.includes("--exit-on-update") && !gitPullOutput.includes("Already up to date.")) {
