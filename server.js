@@ -62,7 +62,17 @@ if (!process.argv.includes("--no-rebuild")) {
     console.log(`Rebuilding ${dir.split(path.sep).pop()}...`);
     process.chdir(dir);
 
+    // check uv installation
+    let uvAvailable;
+    try {
+      execSync("uv --version", { stdio: "ignore" });
+      uvAvailable = true
+    } catch {
+      uvAvailable = false
+    }
+
     let fullCommand = `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`;
+    fullCommand = uvAvailable ? `uv run ${fullCommand}` : fullCommand
 
     if (venvActivationScriptPath != null) {
       if (venvActivationScriptPath) {
