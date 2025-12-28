@@ -236,13 +236,13 @@ function updateServer(req, res) {
       const gray = "\x1b[90m";
       const reset = "\x1b[0m";
       const formattedResponse = `
-        ${blue}Update Successful${reset}
-        ${blue}Git Pull Output:${reset}
-        ${gray}${gitPullOutput}${reset}
-        ${blue}Submodule Update Output:${reset}
-        ${gray}${gitSubmoduleOutput}${reset}
-        Do a GET /checkOnline to see the changes.
-        `;
+${blue}Update Successful${reset}
+${blue}Git Pull Output:${reset}
+${gray}${gitPullOutput}${reset}
+${blue}Submodule Update Output:${reset}
+${gray}${gitSubmoduleOutput}${reset}
+Do a GET /checkOnline to see the changes.
+`;
       if (process.argv.includes("--exit-on-update") && !gitPullOutput.includes("Already up to date.")) {
         res.status(410).send(formattedResponse);
         process.exit(0);
@@ -296,26 +296,40 @@ function checkOnline(req, res) {
     const formattedSubmoduleStatus =
       colorizeSubmoduleStatus(gitSubmoduleOutput);
     res.send(`
-        <h1>Server is online</h1>
-        <h3>Local Repo Status</h3>
-        <pre>${formattedLog}</pre>
-        <h3>Submodule Status</h3>
-        <pre>${formattedSubmoduleStatus}</pre>
-        <style>
-          @import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap");
-          body { font-family: "Pixelify Sans"; }
-          pre { font-family: "Pixelify Sans"; background-color: #1e1e1e; padding: 10px; color: #ddd; border-radius: 5px; }
-        </style>
-      `);
+<h1>Server is online</h1>
+<h3>Local Repo Status</h3>
+<pre>${formattedLog}</pre>
+<h3>Submodule Status</h3>
+<pre>${formattedSubmoduleStatus}</pre>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
+  body { font-family: "Cascadia Code" }
+  pre {
+    font-family: "Cascadia Code";
+    background-color: #1e1e1e;
+    padding: 10px;
+    color: #ddd;
+    border-radius: 5px
+  }
+</style>
+`);
   } catch (error) {
     console.error("Error during git commands:", error);
     res.status(500).send(`
-        <h1>Error</h1>
-        <p>There was an error retrieving git information.</p>
-        <pre>${error.toString()}</pre>
-        <style>@import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap");
-        body { font-family:"Pixelify Sans" }
-        pre { font-family: "Pixelify Sans"; background-color: #1e1e1e; padding: 10px; color: #ddd; border-radius: 5px; }</style>
-      `);
+<h1>Error</h1>
+<p>There was an error retrieving git information.</p>
+<pre>${error.toString()}</pre>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
+  body { font-family:"Cascadia Code" }
+  pre {
+    font-family: "Cascadia Code";
+    background-color: #1e1e1e;
+    padding: 10px;
+    color: #ddd;
+    border-radius: 5px
+  }
+</style>
+`);
   }
 }
