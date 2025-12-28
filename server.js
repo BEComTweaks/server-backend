@@ -132,10 +132,8 @@ httpApp.post("/update", (req, res) => {
     updateServer(req, res);
   }
   else {
-    res.send("Lazy ass, just do it yourself");
-    console.log(
-      "Hey lazy ass, over here, just press `Ctrl + C` then `git pull`, why the extra steps?",
-    );
+    // https://httpmemes.netlify.app/status/405
+    res.status(405).send("Updates over HTTP are disabled. Use HTTPS server or enable dev mode.");
   }
 });
 
