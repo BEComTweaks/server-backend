@@ -185,16 +185,14 @@ if (httpsApp) {
   });
 
   httpsApp.get("/{*splat}", (req, res) => {
-    res.redirect("https://becomtweaks.github.io");
-    console.log(
-      "Someone accesssed the IP. Redirected them to the correct site.",
-    );
+    // https://httpmemes.netlify.app/status/308
+    res.status(308).redirect("https://becomtweaks.github.io");
   });
 }
 function downloadTotals(req, res) {
   const type = req.query.type;
   if (!type) {
-    res.status(400).send("You need a specified query. The only query available is `type`.");
+    res.status(400).send("You need a specified query. The only query parameter available is `type`.");
   } else {
     console.log(`${cdir("base")}/downloadTotals${type}.json`, filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`));
     if (filesystem.existsSync(`${cdir("base")}/downloadTotals${type}.json`)) {
@@ -204,16 +202,15 @@ function downloadTotals(req, res) {
         }
       });
     } else {
-      res.status(404).send(
-        `There is no such file called downloadTotals${type}.json at the root directory`,
-      );
+      res.status(404).send(`There is no such file called downloadTotals${type}.json at the root directory`);
     }
   }
 }
 function updateServer(req, res) {
   const key = req.query.key;
   if (!key) {
-    res.status(400).send("You need a key to update the server.");
+    // https://httpmemes.netlify.app/status/403
+    res.status(403).send("You need a key to update the server.");
     return;
   }
   if (!filesystem.existsSync(secretStuffPath)) {
@@ -221,7 +218,8 @@ function updateServer(req, res) {
     const secretStuff = { key: newkey };
     dumpJson(secretStuffPath, secretStuff);
     return res
-      .status(500)
+      // https://httpmemes.netlify.app/status/201
+      .status(201)
       .send("Secret stuff file not found. Made a new one.");
   }
   const secretStuff = loadJson(secretStuffPath);
@@ -246,7 +244,7 @@ function updateServer(req, res) {
         Do a GET /checkOnline to see the changes.
         `;
       if (process.argv.includes("--exit-on-update") && !gitPullOutput.includes("Already up to date.")) {
-        res.status(200).send(formattedResponse);
+        res.status(410).send(formattedResponse);
         process.exit(0);
       } else {
         return res.status(200).send(formattedResponse);
@@ -264,6 +262,7 @@ function updateServer(req, res) {
       return res.status(500).send(errorResponse);
     }
   } else {
+    // https://httpmemes.netlify.app/status/403
     res.status(403).send("Wrong key!");
   }
 
