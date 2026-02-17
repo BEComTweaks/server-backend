@@ -200,15 +200,15 @@ function downloadTotals(req, res) {
         }
       });
     } else {
-      res.status(404).send(`There is no such file called downloadTotals${type}.json at the root directory`);
+      res.status(404).type('text/plain').send(`There is no such file called downloadTotals${type}.json at the root directory`);
     }
   }
 }
 function updateServer(req, res) {
   const key = req.query.key;
   if (!key) {
-    // https://httpmemes.netlify.app/status/403
-    res.status(403).send("You need a key to update the server.");
+    // https://httpmemes.netlify.app/status/401
+    res.status(401).send("You need a key to update the server.");
     return;
   }
   if (!filesystem.existsSync(secretStuffPath)) {
@@ -270,8 +270,16 @@ Do a GET /checkOnline to see the changes.
 }
 function checkOnline(req, res) {
   try {
-    const gitLogOutput = execSync("git log -1 --format=short").toString();
-    const gitSubmoduleOutput = execSync("git submodule status").toString();
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+    const gitLogOutput = escapeHtml(execSync("git log -1 --format=short").toString());
+    const gitSubmoduleOutput = escapeHtml(execSync("git submodule status").toString());
     const colorizeGitLog = (log) => {
       return log
         .replace(
@@ -319,7 +327,7 @@ function checkOnline(req, res) {
     res.status(500).send(`
 <h1>Error</h1>
 <p>There was an error retrieving git information.</p>
-<pre>${error.toString()}</pre>
+<pre>${escapeHtml(error.toString())}</pre>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap');
   body { font-family:"Cascadia Code" }

@@ -287,6 +287,17 @@ function listOfFromDirectories(selectedPacks, type) {
     if (category === "raw") {
       return;
     } else {
+      // Validate that category exists in nameToJson mapping
+      if (!nameToJson.hasOwnProperty(category)) {
+        console.warn(`Unknown category "${category}" - skipping`);
+        return;
+      }
+
+      // Additional check: ensure category name doesn't contain path traversal
+      if (category.includes('..') || category.includes('/') || category.includes('\\')) {
+        console.warn(`Invalid category name "${category}" - contains path traversal characters`);
+        return;
+      }
       const currentCategoryJSON = loadJson(
         `${cdir(type)}/jsons/packs/${nameToJson[category]}`,
       );
@@ -298,12 +309,17 @@ function listOfFromDirectories(selectedPacks, type) {
         location = currentCategoryJSON.location;
       }
       selectedPacks[category].forEach((pack) => {
-        if (addedPacks.includes(pack)) {
+        if (typeof pack !== 'string') {
           return;
         }
-        addedPacks.push(pack);
-        fromDir.push(`${cdir(type)}/packs/${location}/${pack}/files`);
-        addedPacksPriority.push(priorityMap[pack]);
+        // Sanitize pack name - remove path traversal characters (same as packName header)
+        const sanitizedPack = pack.replaceAll(/[\.\/\\]/g, "");
+        if (!sanitizedPack || addedPacks.includes(sanitizedPack)) {
+          return;
+        }
+        addedPacks.push(sanitizedPack);
+        fromDir.push(`${cdir(type)}/packs/${location}/${sanitizedPack}/files`);
+        addedPacksPriority.push(priorityMap[sanitizedPack]);
       });
     }
   });

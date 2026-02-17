@@ -204,7 +204,7 @@ const endpoints = [
         headers: { Accept: "text/plain" },
         expectedStatus: 400, // Server sends 400 for bad request
         expectedContentExact:
-          "You need a specified query. The only query available is `type`.",
+          "You need a specified query. The only query parameter available is `type`.",
       },
     ],
   },
@@ -238,7 +238,7 @@ const endpoints = [
         description: "No Key",
         responseTypeExpected: "text",
         headers: { Accept: "text/plain" },
-        expectedStatus: 400,
+        expectedStatus: 401,
         expectedContentPartial: "You need a key to update the server.",
         expectedContentExact: "You need a key to update the server.",
       },
