@@ -10,7 +10,7 @@
   "author": "BEComTweaks",
   "license": "MIT",
   "dependencies": {
-    "archiver": "^7.0.1",
+    "archiver": "^8.0.0",
     "axios": "^1.16.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
