@@ -2,8 +2,9 @@ const https = require("https");
 const express = require("express");
 const cors = require("cors");
 const filesystem = require("fs");
-const acceptableHttpsPorts = [443, 8443, 8444];
-function initHttpsServer() {
+
+function initHttpsServer(ports) {
+    const acceptableHttpsPorts = ports;
     let httpsPortIndex = 0;
     try {
         const privateKey = filesystem.readFileSync("private.key", "utf8");

@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
-const acceptableHttpPorts = [80, 8080, 8000];
-function initHttpServer() {
+
+function initHttpServer(ports) {
+    const acceptableHttpPorts = ports;
     let httpPortIndex = 0;
     const httpApp = express();
 

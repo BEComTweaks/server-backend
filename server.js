@@ -36,21 +36,18 @@ const filesystem = require("fs");
 const path = require("path");
 const { makePackRequest } = require('./packCreation')
 const { cdir, loadJson, dumpJson, isBashInstalled, uuidv4 } = require("./helperFunctions.js");
-const httpsApp = require('./https-server').initHttpsServer()
-const httpApp = require('./http-server').initHttpServer()
+const { loadSettings } = require("./settings.js");
+const settings = loadSettings();
+
+const httpsApp = require('./https-server').initHttpsServer(settings.httpsPorts)
+const httpApp = require('./http-server').initHttpServer(settings.httpPorts)
 const currentdir = process.cwd();
 const secretStuffPath = path.join(currentdir, "secretstuff.json");
 const os = require("os");
 
 
-if (!process.argv.includes("--no-rebuild")) {
-  let venvActivationScriptPath = null;
-  for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i] === "--venv" && i + 1 < process.argv.length) {
-      venvActivationScriptPath = process.argv[i + 1];
-      break;
-    }
-  }
+if (!settings.noRebuild) {
+  let venvActivationScriptPath = settings.venv;
 
   const isWindows = os.platform() === "win32";
   const bashIsInstalled = isBashInstalled();
@@ -71,7 +68,7 @@ if (!process.argv.includes("--no-rebuild")) {
       uvAvailable = false
     }
 
-    let fullCommand = `python pys/pre_commit.py --no-stash --build server --no-spinner ${process.argv.includes("--no-format") ? "" : "--format"}`;
+    let fullCommand = `python pys/pre_commit.py --no-stash --build server --no-spinner ${settings.noFormat ? "" : "--format"}`;
     fullCommand = uvAvailable ? `uv run ${fullCommand}` : fullCommand
 
     if (venvActivationScriptPath != null) {
@@ -128,7 +125,7 @@ httpApp.get("/downloadTotals", (req, res) => {
 });
 
 httpApp.post("/update", (req, res) => {
-  if (process.argv.includes("--dev")) {
+  if (settings.dev) {
     updateServer(req, res);
   }
   else {
@@ -137,7 +134,7 @@ httpApp.post("/update", (req, res) => {
   }
 });
 
-if (process.argv.includes("--dev")) {
+if (settings.dev) {
   httpApp.get("/checkOnline", (req, res) => {
     checkOnline(req, res);
   });
@@ -244,7 +241,7 @@ ${blue}Git Status Output:${reset}
 ${gray}${gitStatusOutput}${reset}
 Do a GET /checkOnline to see the changes.
 `;
-      if (process.argv.includes("--exit-on-update") && !gitPullOutput.includes("Already up to date.")) {
+      if (settings.exitOnUpdate && !gitPullOutput.includes("Already up to date.")) {
         res.status(410).send(formattedResponse);
         process.exit(0);
       } else {
