@@ -1,4 +1,4 @@
-async function zipFolder(directory) {
+async function zipFolder(directory, settings) {
   const file_system = require("fs");
   const archiver = require("archiver");
 
@@ -9,15 +9,17 @@ async function zipFolder(directory) {
     });
 
     output.on("close", function () {
-      console.log(archive.pointer() + " total bytes");
-      console.log(
-        "archiver has been finalized and the output file descriptor has closed.",
-      );
+      if (settings.dev) {
+        console.log(archive.pointer() + " total bytes");
+        console.log(
+          "archiver has been finalized and the output file descriptor has closed.",
+        );
+      }
       resolve(); // Resolve the promise when the archive is finalized and the output stream is closed.
     });
 
     output.on("end", function () {
-      console.log("Data has been drained");
+      if (settings.dev) console.log("Data has been drained");
     });
 
     archive.on("warning", function (err) {

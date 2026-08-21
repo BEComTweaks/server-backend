@@ -3,6 +3,8 @@ const filesystem = require("fs");
 const path = require("path");
 const zipFolder = require("./zip.js");
 const { cdir, loadJson, dumpJson, uuidv4 } = require("./helperFunctions.js");
+const { loadSettings } = require("./settings.js");
+const settings = loadSettings();
 async function makePackRequest(req, res, type) {
   const rawPackName = (req.headers.packname || `BTRP-${Math.floor(Math.random() * 1000000)}`)
   const packName = (rawPackName.replaceAll(/[\.\/\\]/g, "") || `BTRP-${Math.floor(Math.random() * 1000000)}`)
@@ -107,8 +109,8 @@ async function createPack(selectedPacks, packName, type, mcVersion, res) {
   if (!realManifest) return null;
   console.log(`Generated default files for ${packName}`);
   const [fromDir, priorities] = listOfFromDirectories(selectedPacks, type);
-  if (process.argv.includes('--dev')) console.log([fromDir, priorities]);
-  console.log(`Obtained list of directories and priorities`);
+  if (settings.dev) console.log([fromDir, priorities]);
+  if (settings.dev) console.log(`Obtained list of directories and priorities`);
   console.log(
     `Exporting at ${cdir()}${path.sep}${realManifest.header.name}...`,
   );
@@ -141,8 +143,8 @@ async function createPack(selectedPacks, packName, type, mcVersion, res) {
       });
       dumpJson(`${cdir()}/${packName}/bp/manifest.json`, bpManifest);
       dumpJson(`${cdir()}/${packName}/rp/manifest.json`, rpManifest);
-      if (process.argv.includes('--dev')) console.log(bpManifest.dependencies);
-      if (process.argv.includes('--dev')) console.log(rpManifest.dependencies);
+      if (settings.dev) console.log(bpManifest.dependencies);
+      if (settings.dev) console.log(rpManifest.dependencies);
     } else {
       // does not require rp
       extension = "mcpack";
@@ -153,7 +155,7 @@ async function createPack(selectedPacks, packName, type, mcVersion, res) {
   } else {
     extension = "mcpack";
   }
-  await zipFolder(`${cdir()}/${realManifest.header.name}`);
+  await zipFolder(`${cdir()}/${realManifest.header.name}`, settings);
   console.log(`${realManifest.header.name}.${extension} 2/2`);
   filesystem.renameSync(
     `${path.join(cdir(), realManifest.header.name)}.zip`,
@@ -201,7 +203,7 @@ function generateManifest(selectedPacks, packName, type, mcVersion, res, extra_d
   templateManifest.header.description = description.slice(1);
   if (regex.test(mcVersion)) {
     let splitMCVersion = [];
-    console.log(`min_engine_version set to ${mcVersion}`);
+    if (settings.dev) console.log(`min_engine_version set to ${mcVersion}`);
     for (var i = 0; i < 3; i++) {
       if (mcVersion.split(".")[i])
         splitMCVersion[i] = parseInt(mcVersion.split(".")[i]);
@@ -267,7 +269,7 @@ function listOfFromDirectories(selectedPacks, type) {
           comp_file[`${n}way`][
           compatibilities[`${n}way`].indexOf(compatibility)
           ];
-        if (process.argv.includes("--dev")) console.log(thisDefinedCompatibility);
+        if (settings.dev) console.log(thisDefinedCompatibility);
         // check if you should overwrite
         if (thisDefinedCompatibility.overwrite) {
           // ignore adding respective packs
@@ -344,10 +346,12 @@ function addFilesToPack(fromDir, priorities, isbehaviour, manifest) {
   fromDir.forEach((dir, dirIndexed) => {
     const fromDirRecursive = lsdir(dir);
     fromDirRecursive.forEach((item, itemIndexed) => {
-      const progress = `${item}`;
-      process.stdout.write(
-        `\r${progress}${" ".repeat(process.stdout.columns - progress.length)}`,
-      );
+      if (settings.dev) {
+        const progress = `${item}`;
+        process.stdout.write(
+          `\r${progress}${" ".repeat(Math.max(0, (process.stdout.columns || progress.length) - progress.length))}`,
+        );
+      }
 
       // skip the root directory
       if (item === "./") {
