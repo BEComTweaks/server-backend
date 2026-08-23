@@ -28,11 +28,23 @@ async function makePackRequest(req, res, type) {
     return;
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
     if (err) {
-      console.error("Error downloading the file:", err);
-      try {
+      // EPIPE/ECONNRESET means the client (or a proxy) closed the connection
+      // while the file was being sent. The response cannot be written again.
+      const clientDisconnected =
+        req.aborted ||
+        res.destroyed ||
+        err.code === "EPIPE" ||
+        err.code === "ECONNRESET" ||
+        err.code === "ECONNABORTED";
+
+      if (clientDisconnected) {
+        console.warn(`Download aborted for ${path.basename(zipPath)}: ${err.code || err.message}`);
+      } else {
+        console.error("Error downloading the file:", err);
+      }
+
+      if (!clientDisconnected && !res.headersSent && !res.destroyed) {
         res.status(500).send("Error downloading the file.");
-      } catch (e) {
-        console.log(e);
       }
     }
     try {
