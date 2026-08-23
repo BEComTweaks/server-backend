@@ -16,7 +16,14 @@ async function makePackRequest(req, res, type) {
     return res.status(400).send("Invalid JSON in request body.");
   }
   const mcVersion = req.headers.mcversion;
-  const zipPath = await createPack(selectedPacks, packName, type, mcVersion, res);
+  let zipPath;
+  try {
+    zipPath = await createPack(selectedPacks, packName, type, mcVersion, res);
+  } catch (error) {
+    filesystem.rmSync(path.join(cdir(), packName), { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    console.error(`Error creating pack ${packName}:`, error);
+    return res.status(500).send("Unable to create the requested pack.");
+  }
   if (!zipPath)
     return;
   res.download(zipPath, `${path.basename(zipPath)}`, (err) => {
@@ -314,14 +321,21 @@ function listOfFromDirectories(selectedPacks, type) {
         if (typeof pack !== 'string') {
           return;
         }
-        // Sanitize pack name - remove path traversal characters (same as packName header)
-        const sanitizedPack = pack.replaceAll(/[\.\/\\]/g, "");
-        if (!sanitizedPack || addedPacks.includes(sanitizedPack)) {
+        // Pack IDs may contain periods (for example, "Pre-1.18StrippedDarkOak").
+        // Only reject path traversal characters; do not alter a valid ID before
+        // resolving its source directory.
+        if (
+          !pack ||
+          pack.includes("/") ||
+          pack.includes("\\") ||
+          pack.includes("..") ||
+          addedPacks.includes(pack)
+        ) {
           return;
         }
-        addedPacks.push(sanitizedPack);
-        fromDir.push(`${cdir(type)}/packs/${location}/${sanitizedPack}/files`);
-        addedPacksPriority.push(priorityMap[sanitizedPack]);
+        addedPacks.push(pack);
+        fromDir.push(`${cdir(type)}/packs/${location}/${pack}/files`);
+        addedPacksPriority.push(priorityMap[pack]);
       });
     }
   });
