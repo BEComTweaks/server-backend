@@ -19,7 +19,7 @@ const testResults = [];
 
 // Define all your endpoints and their test configurations
 // Each `testCases` array defines different scenarios or expected responses for an endpoint
-// Schema: https://becomtweaks.github.io/schema/endpoint_tester.json
+// Schema: https://becomtweaks.com/schema/endpoint_tester.json
 const endpoints = [
   {
     name: "Export Resource Pack",
@@ -284,7 +284,7 @@ const endpoints = [
         responseTypeExpected: "redirect", // Custom type for redirects
         headers: { Accept: "text/html" },
         expectedStatus: 302,
-        expectedLocation: "https://becomtweaks.github.io",
+        expectedLocation: "https://becomtweaks.com",
       },
     ],
   },

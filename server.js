@@ -181,7 +181,7 @@ if (httpsApp) {
 
   httpsApp.get("/{*splat}", (req, res) => {
     // https://httpmemes.netlify.app/status/308
-    res.status(308).redirect("https://becomtweaks.github.io");
+    res.status(308).redirect("https://becomtweaks.com");
   });
 }
 function downloadTotals(req, res) {
